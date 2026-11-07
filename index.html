@@ -1,0 +1,2357 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coyotaco® - Menú Digital y Pedidos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#24130d">
+    <style>
+        .logo-font { font-family: 'Caveat', cursive; }
+        body { background-color: #24130d; color: #1a1a1a; font-family: 'Poppins', system-ui, -apple-system, sans-serif; scroll-behavior: smooth; margin: 0; padding: 0; }
+        .img-card-container { width: 100%; height: 200px; position: relative; overflow: hidden; background-color: #111; display: flex; align-items: center; justify-content: center; }
+        .img-card-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .panel-bg {
+            background-color: #121212;
+            background-image: linear-gradient(rgba(18, 18, 18, 0.93), rgba(18, 18, 18, 0.96)), url('fondo menu_3.jpeg_2.jpeg');
+            background-size: cover; background-position: center; background-attachment: fixed;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            #ticket-impresion, #ticket-impresion * { visibility: visible; }
+            #ticket-impresion { position: absolute; left: 0; top: 0; width: 100%; display: block !important; background: white; color: black; padding: 10px; font-family: monospace; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- BANNER DE AVISO DE CIERRE CERCANO -->
+<div id="banner-aviso-cierre" class="hidden bg-amber-500 text-gray-950 font-black text-xs text-center py-2 px-4 shadow-md sticky top-0 z-50">
+    ⚠️ ¡Atención! Estamos a menos de 30 minutos del cierre. A partir de este momento los pedidos son exclusivamente para <strong>recoger en sucursal</strong>.
+</div>
+
+<!-- PÁGINA DE INICIO -->
+<div id="vista-portada" class="min-h-screen flex flex-col bg-[#381f15] text-white relative overflow-hidden">
+    <div class="w-full bg-[#1c0e08] px-4 sm:px-6 pt-5 pb-3 sm:py-3 flex flex-col sm:flex-row justify-between items-center shadow-xl border-b border-red-900/30 gap-3">
+        <div class="flex items-center justify-between w-full sm:w-auto">
+            <div class="flex items-center gap-2">
+                <div class="w-32 h-32 sm:w-48 sm:h-48 rounded-2xl overflow-hidden border-2 border-red-600 bg-[#3c1f14] flex items-center justify-center relative shadow-2xl -my-4 sm:-my-3 shrink-0 z-20">
+                    <img src="logo.jpg.jpg" alt="Logo Oficial Coyotaco" id="logo-principal" class="w-full h-full object-contain bg-black/40" onerror="this.src='https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=300'">
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div id="badge-estado-global" class="px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow">
+                    <span id="dot-global" class="w-2.5 h-2.5 rounded-full"></span> <span id="txt-estado-global">Calculando...</span>
+                </div>
+                <button onclick="abrirModalMisPedidos()" class="sm:hidden bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-3 py-2.5 rounded-xl shadow transition cursor-pointer">Mis Pedidos 📦</button>
+                <button onclick="intentarIrAlMenu()" class="sm:hidden bg-red-700 hover:bg-red-800 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition cursor-pointer">Pedir 🚲</button>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-semibold tracking-wide text-amber-100 py-1">
+            <a href="#vista-portada" class="hover:text-red-500 transition">Inicio</a>
+            <a href="#seccion-quienes-somos" class="hover:text-red-500 transition">¿Quiénes somos?</a>
+            <a href="#seccion-salsas" class="hover:text-red-500 transition">Salsas</a>
+            <button onclick="intentarIrAlMenu()" class="hover:text-red-500 transition cursor-pointer font-bold text-amber-300">Menú</button>
+            <a href="#seccion-facturacion" class="hover:text-red-500 transition">Facturación</a>
+            <a href="#seccion-contacto-directo" class="hover:text-red-500 transition">Eventos</a>
+        </div>
+        <div class="hidden sm:flex items-center gap-3">
+            <button onclick="abrirModalMisPedidos()" class="bg-amber-600 hover:bg-amber-700 text-white font-black text-xs sm:text-sm px-4 py-3 rounded-2xl shadow-md transition cursor-pointer border border-amber-500/40">📦 Mis Pedidos</button>
+            <button onclick="intentarIrAlMenu()" class="bg-red-700 hover:bg-red-800 text-white font-black text-xs sm:text-sm px-5 py-3 rounded-2xl shadow-md transition cursor-pointer border border-red-500/40">Pedir a domicilio</button>
+        </div>
+    </div>
+
+    <div class="relative w-full h-[380px] sm:h-[500px] flex flex-col justify-end items-center text-center pb-12 px-4 overflow-hidden shadow-inner">
+        <div class="absolute inset-0 bg-cover bg-center" id="banner-portada-bg" style="background-image: url('banner.jpg.jpg');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#1c0e08] via-black/60 to-black/30"></div>
+        <div class="relative z-10 space-y-2 max-w-2xl mx-auto px-2">
+            <h1 class="logo-font text-5xl sm:text-8xl font-bold text-red-600 tracking-wide drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]" id="titulo-ppal">Coyotaco</h1>
+            <p class="logo-font text-xl sm:text-3xl text-amber-300 tracking-wider font-bold drop-shadow-md" id="lema-ppal">Con el típico sabor de Coyoacán desde 2003.</p>
+        </div>
+    </div>
+
+    <div class="bg-[#dcd6ce] text-gray-900 px-4 sm:px-16 py-8 sm:py-16 space-y-12 sm:space-y-16">
+        <div id="seccion-quienes-somos" class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 items-center border border-red-900/15">
+            <div class="w-full h-72 sm:h-96 md:h-[450px] relative overflow-hidden bg-[#24130d] flex items-center justify-center p-4">
+                <img src="quienes somos.jpg" alt="Tradición Coyotaco" id="img-tradicion-banner" class="w-full h-full object-contain drop-shadow-md" onerror="this.src='https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600'">
+            </div>
+            <div class="p-6 sm:p-12 space-y-4 sm:space-y-5 text-center md:text-left">
+                <span class="bg-red-100 text-red-700 font-bold text-xs px-3 py-1 rounded-full uppercase">Nuestra Historia</span>
+                <h2 class="text-2xl sm:text-3xl font-black tracking-wider uppercase text-gray-900" id="h-tradicion">¿Quiénes Somos?</h2>
+                <div class="space-y-3 text-xs sm:text-sm text-gray-700 leading-relaxed font-normal" id="p-tradicion">
+                    <p>Desde 2003, <strong>Coyotaco</strong> se ha consolidado como un referente indiscutible del buen comer en el corazón de Coyoacán. Nacimos con una misión clara: ofrecer tacos y antojitos mexicanos de la más alta calidad, conservando los sabores tradicionales que nos distinguen.</p>
+                    <p>Cada ingrediente es seleccionado cuidadosamente todos los días para garantizar frescura y autenticidad en cada platillo. Nos enorgullece ser un espacio cálido y familiar donde el sazón y la tradición van de la mano.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="seccion-salsas" class="max-w-6xl mx-auto bg-[#381f15] rounded-3xl shadow-2xl p-6 sm:p-12 text-white border border-red-600/40 grid grid-cols-1 md:grid-cols-2 items-center gap-8">
+            <div class="w-full h-72 sm:h-96 md:h-[420px] relative overflow-hidden rounded-2xl border border-red-500/30 bg-black/50 flex items-center justify-center p-2">
+                <img src="salsas.jpg" alt="Nuestras Salsas Coyotaco" class="w-full h-full object-contain drop-shadow-md" onerror="this.src='https://images.unsplash.com/photo-1582281298055-e25b84a3070b?w=700'">
+            </div>
+            <div class="space-y-4 text-center md:text-left">
+                <span class="inline-block bg-amber-400 text-gray-950 font-black text-xs px-4 py-1.5 rounded-full uppercase tracking-widest shadow">El Alma de la Casa</span>
+                <h2 class="text-3xl sm:text-4xl font-black tracking-wider uppercase text-amber-300">Nuestros 5 Estilos de Salsas</h2>
+                <p class="text-xs sm:text-sm text-gray-300 leading-relaxed font-medium">El secreto inconfundible de Coyotaco. Disfruta y combina nuestros 5 estilos artesanales preparados diariamente con ingredientes frescos:</p>
+                <ul class="space-y-2 text-xs sm:text-sm text-left font-medium bg-[#1c0e08]/70 p-5 rounded-2xl border border-red-900/40">
+                    <li class="flex items-start gap-2"><i class="fa-solid fa-pepper-hot text-red-500 mt-1"></i><span><strong>Salsa Roja de pasilla:</strong> Intensa y con el toque exacto de humo y tradición.</span></li>
+                    <li class="flex items-start gap-2"><i class="fa-solid fa-pepper-hot text-green-500 mt-1"></i><span><strong>Salsa verde tradicional:</strong> Fresca, clásica y con un picor alegre.</span></li>
+                    <li class="flex items-start gap-2"><i class="fa-solid fa-pepper-hot text-amber-500 mt-1"></i><span><strong>Coyotaco:</strong> Nuestra receta secreta y exclusiva de la casa.</span></li>
+                    <li class="flex items-start gap-2"><i class="fa-solid fa-pepper-hot text-red-400 mt-1"></i><span><strong>Mexicana:</strong> Picarona mezcla de jitomate, cebolla y chile serrano.</span></li>
+                    <li class="flex items-start gap-2"><i class="fa-solid fa-pepper-hot text-yellow-400 mt-1"></i><span><strong>De Piña:</strong> Exquisita combinación agridulce de piña, cebolla y serrano.</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto bg-[#381f15] rounded-3xl shadow-2xl p-6 sm:p-12 text-white border border-red-600/40 space-y-6 sm:space-y-8">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl sm:text-3xl font-black tracking-wider uppercase text-red-500" id="h-favoritos">Los Favoritos De Coyotaco</h2>
+                <p class="text-xs sm:text-sm text-gray-300 italic" id="sub-favoritos">Los sabores que han hecho de Coyotaco un clásico de Coyoacán.</p>
+            </div>
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-red-500/30 text-gray-900 grid grid-cols-1 md:grid-cols-2 items-center">
+                <div class="w-full h-72 md:h-full min-h-[300px] relative overflow-hidden bg-gray-100 flex items-center justify-center p-4">
+                    <img src="Coyotaco.jpg" alt="Coyotaco Especialidad" id="img-coyotaco-card" class="w-full h-full object-contain drop-shadow-md" onerror="this.src='https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500'">
+                </div>
+                <div class="p-6 sm:p-8 space-y-4 text-center md:text-left">
+                    <span class="inline-block bg-amber-400 text-gray-950 font-black text-sm sm:text-base px-6 py-2 rounded-full uppercase tracking-widest shadow-md border border-amber-500" id="esp-tag">ESPECIALIDAD</span>
+                    <h3 class="logo-font text-5xl sm:text-6xl font-extrabold text-red-600 uppercase tracking-wide" id="esp-titulo">Coyotaco</h3>
+                    <p class="text-xs sm:text-sm text-gray-600 leading-relaxed font-medium" id="esp-desc">Nuestra especialidad de la casa. Receta única con el mejor sazón tradicional.</p>
+                    <div class="text-gray-900 font-black text-base sm:text-lg">Sencillo: <span class="text-red-600">$150</span> | c/queso: <span class="text-red-600">$180</span></div>
+                    <div class="pt-2">
+                        <button onclick="abrirModalPersonalizarEspecialidadPortada()" class="w-full bg-red-700 hover:bg-red-800 text-white font-black text-xs uppercase tracking-wider py-3.5 px-4 rounded-xl shadow transition cursor-pointer">Agregar / Personalizar ($150 / $180)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 items-center border border-red-900/15">
+            <div class="w-full h-72 md:h-full min-h-[300px] relative overflow-hidden bg-gray-100 flex items-center justify-center p-4">
+                <img src="seccion tacos.jpg" alt="Tacos Clásicos" id="img-tacos-card" class="w-full h-full object-contain drop-shadow-md" onerror="this.src='https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500'">
+            </div>
+            <div class="p-6 sm:p-12 text-center md:text-left space-y-4">
+                <span class="inline-block bg-red-100 text-red-700 font-bold text-xs px-3 py-1 rounded-full uppercase">Tradición</span>
+                <h3 class="font-black text-2xl sm:text-3xl text-gray-900 uppercase" id="tacos-titulo">Tacos</h3>
+                <p class="text-sm sm:text-base text-gray-600 leading-relaxed" id="tacos-desc">Los clásicos de Coyotaco. Pastor, suadero y campechano en tortilla de maíz o harina.</p>
+                <div class="text-lg font-black text-red-700 pt-2" id="tacos-precio">Desde $25</div>
+            </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto bg-[#381f15] rounded-3xl shadow-2xl p-6 sm:p-12 text-white border border-red-600/40 space-y-6 sm:space-y-8">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 items-center border border-red-500/30 text-gray-900">
+                <div class="p-6 sm:p-12 text-center md:text-left space-y-4 order-2 md:order-1">
+                    <span class="inline-block bg-red-100 text-red-700 font-bold text-xs px-3 py-1 rounded-full uppercase">Antojos</span>
+                    <h3 class="font-black text-2xl sm:text-3xl text-gray-900 uppercase" id="antojitos-titulo">Antojitos</h3>
+                    <p class="text-sm sm:text-base text-gray-600 leading-relaxed" id="antojitos-desc">Para todos los antojitos. Quesadillas, sopes y volcanes con diferentes opciones de carne y acompañamientos.</p>
+                    <div class="text-lg font-black text-red-700 pt-2" id="antojitos-precio">Desde $35</div>
+                </div>
+                <div class="w-full h-72 md:h-full min-h-[300px] relative overflow-hidden order-1 md:order-2 bg-gray-100 flex items-center justify-center p-4">
+                    <img src="antojitos.jpg" alt="Antojitos" id="img-antojitos-card" class="w-full h-full object-contain drop-shadow-md" onerror="this.src='https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500'">
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 items-center border border-red-900/15">
+            <div class="w-full h-72 md:h-full min-h-[300px] relative overflow-hidden bg-gray-100 flex items-center justify-center p-4">
+                <img src="Alambres Y Combinaciones.jpg" alt="Alambres" id="img-alambres-card" class="w-full h-full object-contain drop-shadow-md" onerror="this.src='https://images.unsplash.com/photo-1544025162-d76694265947?w=500'">
+            </div>
+            <div class="p-6 sm:p-12 text-center md:text-left space-y-4">
+                <h3 class="font-black text-2xl sm:text-3xl text-gray-900 uppercase" id="alambres-titulo">Alambres Y Combinaciones</h3>
+                <p class="text-sm sm:text-base text-gray-600 leading-relaxed" id="alambres-desc">¿Vienes acompañado? La mejor opción para compartir o disfrutar en solitario. Bistec, costilla, chuleta, pollo y arrachera acompañados con nopal, champiñón, aguacate y más.</p>
+                <div class="text-lg font-black text-red-700 pt-2" id="alambres-precio">Desde $110</div>
+            </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto space-y-8">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl sm:text-3xl font-black tracking-wider uppercase text-gray-900">Información y Servicios</h2>
+                <p class="text-sm text-gray-600">Todo lo que necesitas saber para disfrutar de Coyotaco.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-200 space-y-4 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center font-bold text-lg"><i class="fa-solid fa-store"></i></div>
+                        <h3 class="font-black text-sm uppercase text-gray-900">Ubicación y Horarios</h3>
+                        <p class="text-xs text-gray-700 leading-relaxed">📍 <strong>Dirección:</strong> Monserrat 35, Coyoacán, Los Reyes, Coyoacán, 04330 Ciudad de México, CDMX.<br>📞 <strong>Teléfono:</strong> <span id="tel-local" class="text-red-700 font-bold">55 5338 3887</span></p>
+                        <div class="text-xs text-gray-600 space-y-1 border-t border-gray-100 pt-2">
+                            <p>🕒 <strong>Martes a Jueves:</strong> 14:00 - 00:00 hrs</p>
+                            <p>🕒 <strong>Viernes y Sábados:</strong> 14:00 - 01:00 hrs</p>
+                            <p>🕒 <strong>Domingos:</strong> 14:00 - 00:00 hrs</p>
+                            <p class="text-red-700 font-bold">Lunes: Cerrado</p>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <a href="https://maps.app.goo.gl/bUo9D5ghNkwcbzsV9?g_st=ac" target="_blank" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition shadow cursor-pointer"><i class="fa-solid fa-map-location-dot"></i> Ver ubicación</a>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-200 space-y-4 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center font-bold text-lg"><i class="fa-solid fa-bicycle"></i></div>
+                        <h3 class="font-black text-sm uppercase text-gray-900">Envíos a Domicilio</h3>
+                        <p class="text-xs text-gray-600 leading-relaxed">🚲 Servicio de entrega disponible a partir de las 14:00 hrs en un <strong>radio de 4 km</strong> (Cobertura en colonias cercanas a Los Reyes).<br><br>💰 <strong>Mínimo de compra:</strong> $250.00 MXN más 10% adicional por servicio a domicilio. Pide directo por WhatsApp desde nuestro menú.</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-200 space-y-4 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center font-bold text-lg"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                        <h3 class="font-black text-sm uppercase text-gray-900">¿Cómo hacer tu pedido?</h3>
+                        <p class="text-xs text-gray-600 leading-relaxed">1️⃣ Entra al menú y arma tu orden.<br>2️⃣ Selecciona tu colonia o recoger en sucursal.<br>3️⃣ Envía tu ticket por WhatsApp con un clic.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="seccion-facturacion" class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 sm:p-10 border border-gray-200 space-y-6">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                <div>
+                    <span class="text-[10px] font-bold text-red-700 uppercase tracking-wider">Servicio al cliente</span>
+                    <h2 class="text-2xl sm:text-3xl font-black uppercase text-gray-900">¿Necesitas Factura?</h2>
+                </div>
+            </div>
+            <div class="space-y-4 text-xs sm:text-sm text-gray-700 leading-relaxed" id="txt-facturacion">
+                <p>Solicita tu factura correspondiente a tus consumos de forma rápida y sencilla.</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><strong>Requisitos:</strong></li>
+                    <li><strong>Envía tu ticket de compra</strong></li>
+                    <li><strong>Constancia de situación fiscal actualizada</strong></li>
+                    <li><strong>Uso de CFDI</strong></li>
+                    <li><strong>Correo electrónico</strong></li>
+                    <li><strong>El método de pago utilizado</strong></li>
+                </ul>
+                <p><strong style="color: #dc2626;">NOTA:</strong> <strong>Las facturas deben solicitarse dentro del mes en curso en que se realizó el consumo.</strong></p>
+            </div>
+            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200 text-center">
+                <a href="https://api.whatsapp.com/send?phone=5215533012756&text=Hola,%20me%20gustaría%20solicitar%20la%20factura%20de%20mi%20consumo." target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white font-black text-xs uppercase tracking-wider py-4 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer"><i class="fa-brands fa-whatsapp text-lg"></i> Solicitar factura</a>
+            </div>
+        </div>
+
+        <div id="seccion-contacto-directo" class="max-w-6xl mx-auto relative rounded-3xl overflow-hidden shadow-2xl border-2 border-red-600 text-white p-6 sm:p-12">
+            <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000');"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#1c0e08] via-[#3c1f14]/95 to-black/90"></div>
+            <div class="relative z-10 max-w-2xl mx-auto text-center space-y-6">
+                <span class="inline-block bg-red-600 text-white font-black text-xs uppercase tracking-widest px-4 py-1.5 rounded-full shadow">Servicio para Eventos</span>
+                <h2 class="text-3xl sm:text-5xl font-black tracking-wide drop-shadow-md text-amber-300">¿Tienes una reunión o fiesta?</h2>
+                <p class="text-sm sm:text-base text-gray-200 leading-relaxed font-medium">Lleva el sabor tradicional de Coyotaco a tu evento con nuestras taquizas profesionales.</p>
+                <div class="pt-4">
+                    <a href="https://api.whatsapp.com/send?phone=5215533012756&text=Hola,%20me%20interesa%20cotizar%20una%20taquiza%20para%20un%20evento." target="_blank" class="inline-block bg-gradient-to-r from-red-600 via-amber-500 to-red-600 text-white font-black text-base sm:text-lg uppercase tracking-wider px-10 py-5 rounded-2xl shadow-[0_0_30px_rgba(239,68,68,0.9)] transition cursor-pointer transform hover:scale-110 border-2 border-amber-300 animate-pulse"><i class="fa-solid fa-fire mr-2 text-amber-200"></i> ¡Cotiza tu Taquiza Aquí! 🌮</a>
+                </div>
+                <div class="pt-4 flex justify-center gap-6">
+                    <a href="https://www.facebook.com/share/1C16BnYUUk/" target="_blank" class="w-12 h-12 rounded-full bg-white text-red-700 hover:bg-red-50 flex items-center justify-center text-xl shadow-md transition transform hover:scale-110"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="https://instagram.com/coyotaco_mx?psln=b3BhY3RqMzY3cTVr" target="_blank" class="w-12 h-12 rounded-full bg-white text-red-700 hover:bg-red-50 flex items-center justify-center text-xl shadow-md transition transform hover:scale-110"><i class="fa-brands fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center max-w-xl mx-auto space-y-4 pt-4">
+            <h2 class="text-2xl font-black tracking-wider uppercase text-gray-900">Cuéntanos Tu Experiencia</h2>
+            <p class="text-xs sm:text-sm text-gray-700 leading-relaxed font-normal">Tu opinión importa y nos ayuda a mejorar para seguirte brindando el servicio que mereces.<br><strong>Gracias Por Tu Visita.</strong></p>
+            <div class="flex flex-col sm:flex-row justify-center gap-3 pt-2">
+                <button id="btn-ver-reseñas" class="bg-gray-900 hover:bg-gray-800 text-amber-300 font-black py-3 px-6 rounded-2xl text-xs flex items-center justify-center gap-2 cursor-pointer transition uppercase tracking-wider shadow"><i class="fa-solid fa-star text-amber-400"></i> Ver reseñas (<span id="contador-opiniones">0</span>)</button>
+                <button id="btn-dejar-reseña" class="bg-red-700 hover:bg-red-800 text-white font-black py-3 px-6 rounded-2xl text-xs flex items-center justify-center gap-2 cursor-pointer transition uppercase tracking-wider shadow"><i class="fa-solid fa-pen-to-square"></i> Dejar una reseña</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-[#1c0e08] text-center py-6 text-xs text-gray-400 border-t border-red-900/30 space-y-2 px-4">
+        <p>Coyotaco® Todos los derechos reservados • Pedidos por WhatsApp</p>
+        <div class="flex justify-center gap-4">
+            <a href="https://www.facebook.com/share/1C16BnYUUk/" target="_blank" class="text-red-400 hover:text-white"><i class="fa-brands fa-facebook-f"></i> Facebook</a>
+            <span>•</span>
+            <a href="https://instagram.com/coyotaco_mx?psln=b3BhY3RqMzY3cTVr" target="_blank" class="text-red-400 hover:text-white"><i class="fa-brands fa-instagram"></i> Instagram</a>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE AVISO CERRADO -->
+<div id="modal-aviso-cerrado" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white text-gray-900 w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-6 text-center space-y-4">
+        <div class="w-16 h-16 bg-red-100 text-red-700 rounded-full flex items-center justify-center mx-auto text-2xl shadow"><i class="fa-solid fa-store-slash"></i></div>
+        <h3 class="text-lg font-black text-gray-900">¡Actualmente Estamos Cerrados!</h3>
+        <p class="text-xs text-gray-600 leading-relaxed">Nuestro horario de servicio es de <strong>Martes a Domingo a partir de las 14:00 hrs</strong> (Lunes cerrado). Puedes explorar nuestro menú, pero el envío de pedidos está disponible únicamente en horario abierto.</p>
+        <button onclick="cerrarModalAvisoCerrado()" class="w-full bg-red-700 hover:bg-red-800 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider cursor-pointer shadow">Entendido, ver menú</button>
+    </div>
+</div>
+
+<!-- MODAL DE "MIS PEDIDOS" -->
+<div id="modal-mis-pedidos" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white text-gray-900 w-full max-w-lg rounded-3xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-900 text-white">
+            <h3 class="text-sm font-black flex items-center gap-2"><i class="fa-solid fa-box-open text-amber-400"></i> Mis Pedidos Realizados</h3>
+            <button onclick="cerrarModalMisPedidos()" class="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 text-white flex items-center justify-center font-bold text-sm cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 overflow-y-auto space-y-4 flex-1 bg-gray-50">
+            <p class="text-xs text-gray-600">Aquí puedes consultar el estatus de tus órdenes enviadas y reportar si ya recibiste tu pedido.</p>
+            <div id="lista-mis-pedidos-cliente" class="space-y-3">
+                <p class="text-xs text-gray-400 text-center py-6">No tienes pedidos recientes registrados en este dispositivo.</p>
+            </div>
+        </div>
+        <div class="p-4 bg-white border-t border-gray-200 flex justify-between items-center">
+            <span class="text-xs text-gray-500">Historial en la nube</span>
+            <button onclick="cerrarModalMisPedidos()" class="bg-gray-900 text-white text-xs font-bold py-2 px-4 rounded-xl cursor-pointer">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA MOTIVO DE CANCELACIÓN -->
+<div id="modal-motivo-cancelacion" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white text-gray-900 w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-6 space-y-4">
+        <div class="text-center space-y-1">
+            <div class="w-12 h-12 bg-red-100 text-red-700 rounded-full flex items-center justify-center mx-auto text-xl mb-2"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="text-base font-black">Cancelar Pedido</h3>
+            <p class="text-xs text-gray-500">¿Por qué deseas cancelar tu pedido? Esta razón se enviará a nuestro WhatsApp.</p>
+        </div>
+        <div>
+            <input type="hidden" id="cancel-cliente-nombre">
+            <input type="hidden" id="cancel-orden-id">
+            <input type="hidden" id="cancel-folio">
+            <textarea id="input-motivo-cancelacion" rows="3" placeholder="Ej. Me equivoqué de dirección o ya no podré recibirlo..." class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-red-600"></textarea>
+        </div>
+        <div class="flex gap-2 pt-2">
+            <button onclick="enviarCancelacionWhatsApp()" class="w-full bg-red-700 hover:bg-red-800 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider cursor-pointer">Enviar Cancelación</button>
+            <button onclick="cerrarModalMotivoCancelacion()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-xl text-xs cursor-pointer">Volver</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODALES DE RESEÑAS -->
+<div id="modal-reseñas" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="text-sm font-black text-gray-900 flex items-center gap-2"><i class="fa-solid fa-comments text-red-600"></i> Reseñas de Nuestros Clientes</h3>
+            <button id="cerrar-modal-reseñas" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center justify-center font-bold text-sm cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-4 overflow-y-auto space-y-3 flex-1" id="lista-reseñas-guardadas"></div>
+        <div class="p-3 bg-gray-50 border-t border-gray-100 text-center"><p class="text-[10px] text-gray-500">Las opiniones se guardan automáticamente.</p></div>
+    </div>
+</div>
+
+<div id="modal-opinion" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="text-sm font-black text-gray-900 flex items-center gap-2"><i class="fa-solid fa-star text-amber-500"></i> Escribe tu Reseña</h3>
+            <button id="cerrar-modal-opinion" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center justify-center font-bold text-sm cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 overflow-y-auto space-y-4 flex-1">
+            <div>
+                <label class="block text-xs font-bold text-gray-800 mb-1">Califica nuestro servicio:</label>
+                <div class="flex gap-2 text-2xl justify-center py-2" id="estrellas-calificacion">
+                    <i class="fa-solid fa-star text-amber-500 cursor-pointer" onclick="seleccionarEstrellas(1)"></i>
+                    <i class="fa-solid fa-star text-amber-500 cursor-pointer" onclick="seleccionarEstrellas(2)"></i>
+                    <i class="fa-solid fa-star text-amber-500 cursor-pointer" onclick="seleccionarEstrellas(3)"></i>
+                    <i class="fa-solid fa-star text-amber-500 cursor-pointer" onclick="seleccionarEstrellas(4)"></i>
+                    <i class="fa-solid fa-star text-amber-500 cursor-pointer" onclick="seleccionarEstrellas(5)"></i>
+                </div>
+                <input type="hidden" id="valor-estrellas" value="5">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-800 mb-1">Tu Nombre</label>
+                <input type="text" id="nombre-opinion" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:border-red-600" placeholder="Ej. María López">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-800 mb-1">Comentario o Sugerencia</label>
+                <textarea id="texto-opinion" rows="3" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:border-red-600" placeholder="Cuéntanos tu experiencia..."></textarea>
+            </div>
+        </div>
+        <div class="p-4 bg-gray-50 border-t border-gray-100">
+            <button onclick="enviarOpinionWhatsApp()" class="w-full bg-red-700 hover:bg-red-800 text-white font-black py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition uppercase tracking-wider shadow"><i class="fa-solid fa-paper-plane"></i> Enviar Opinión a WhatsApp</button>
+        </div>
+    </div>
+</div>
+
+<!-- SECCIÓN 2: MENÚ DIGITAL -->
+<div id="vista-menu" style="display: none; background-image: url('fondo menu_3.jpeg.jpeg'); background-size: cover; background-position: center; background-attachment: fixed;" class="min-h-screen text-white relative">
+    <div class="absolute inset-0 bg-black/85"></div>
+    <header class="bg-[#1c0e08]/95 backdrop-blur-md shadow-lg sticky top-0 z-40 border-b border-red-900/30 relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+            <button onclick="regresarPortada()" class="flex items-center gap-2 text-white font-black text-xs bg-red-700 hover:bg-red-800 px-3 sm:px-4 py-2.5 rounded-2xl transition cursor-pointer shadow-md transform hover:scale-105 border border-red-500/40"><i class="fa-solid fa-arrow-left"></i> Volver al Inicio</button>
+            <div class="flex items-center gap-3">
+                <button onclick="abrirModalMisPedidos()" class="bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-3.5 py-2 rounded-xl transition cursor-pointer shadow">📦 Mis Pedidos</button>
+                <div class="flex items-center gap-1.5">
+                    <h2 class="logo-font text-3xl sm:text-4xl text-red-600 leading-none drop-shadow">Coyotaco</h2>
+                    <span class="text-[9px] font-bold text-white bg-red-600 px-1.5 py-0.5 rounded-md align-super">®</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6 relative z-10">
+        <div class="flex justify-end relative z-50 w-full mb-14 sm:mb-12">
+            <div class="w-full sm:w-72 relative">
+                <button onclick="toggleMenuCategorias()" class="w-full bg-red-700 hover:bg-red-800 text-white font-black py-3.5 px-5 rounded-2xl shadow-xl flex items-center justify-between transition cursor-pointer border border-red-500/50 uppercase text-xs tracking-wider">
+                    <span id="label-categoria-actual" class="flex items-center gap-2"><i class="fa-solid fa-bars"></i> MENÚ</span>
+                    <i class="fa-solid fa-chevron-down transition-transform duration-200" id="icono-flecha-cat"></i>
+                </button>
+                <div id="dropdown-categorias" class="hidden absolute top-full right-0 mt-2 w-full bg-[#1c0e08] border border-red-900/60 rounded-2xl shadow-2xl max-h-96 overflow-y-auto divide-y divide-red-900/30 p-2 z-50 text-left">
+                    <button onclick="filtrarCategoria('TODOS'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Todo el Menú</button>
+                    <button onclick="filtrarCategoria('Especialidad de la Casa y Combinaciones'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Especialidad y Combinaciones</button>
+                    <button onclick="filtrarCategoria('Sopas'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Sopas</button>
+                    <button onclick="filtrarCategoria('Tacos Individuales'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Tacos Individuales</button>
+                    <button onclick="filtrarCategoria('Orden de Tacos'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Orden de Tacos</button>
+                    <button onclick="filtrarCategoria('Acompañamientos'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Acompañamientos</button>
+                    <button onclick="filtrarCategoria('Tortas'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Tortas</button>
+                    <button onclick="filtrarCategoria('Gringas'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Gringas</button>
+                    <button onclick="filtrarCategoria('Burritos'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Burritos</button>
+                    <button onclick="filtrarCategoria('Alambres'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Alambres</button>
+                    <button onclick="filtrarCategoria('Sopes'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Sopes</button>
+                    <button onclick="filtrarCategoria('Volcanes'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Volcanes</button>
+                    <button onclick="filtrarCategoria('Quesadillas'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Quesadillas</button>
+                    <button onclick="filtrarCategoria('Quesos Fundidos'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Quesos Fundidos</button>
+                    <button onclick="filtrarCategoria('Costras'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Costras</button>
+                    <button onclick="filtrarCategoria('Bebidas'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Bebidas</button>
+                    <button onclick="filtrarCategoria('Cervezas'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Cervezas</button>
+                    <button onclick="filtrarCategoria('Postres'); cerrarDropdown();" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-700/80 text-white font-extrabold text-xs uppercase transition">Postres</button>
+                </div>
+            </div>
+        </div>
+        <div id="lista-productos" class="space-y-10"></div>
+    </main>
+</div>
+
+<!-- MODAL DE PERSONALIZACIÓN -->
+<div id="modal-personalizar" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white text-gray-900 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 id="modal-titulo-personalizar" class="text-sm font-black text-gray-900">Personalizar Producto</h3>
+            <button onclick="cerrarModalPersonalizar()" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center justify-center font-bold text-sm cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 space-y-4 max-h-[70vh] overflow-y-auto" id="contenido-opciones-modal"></div>
+        <div class="p-4 bg-gray-50 border-t border-gray-100 flex gap-2">
+            <button onclick="confirmarPersonalizacion()" class="w-full bg-red-700 hover:bg-red-800 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider shadow cursor-pointer transition">Agregar al Pedido</button>
+        </div>
+    </div>
+</div>
+
+<!-- Barra Inferior Flotante -->
+<div id="barra-flotante" class="fixed bottom-0 left-0 right-0 bg-[#1c0e08]/95 backdrop-blur-md border-t border-red-900/40 p-4 shadow-2xl z-50 transform translate-y-full transition-transform duration-300">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center font-black text-sm" id="contador-flotante">0</div>
+            <div>
+                <p class="text-[11px] text-gray-300 font-bold uppercase tracking-wider">Total de tu orden</p>
+                <p class="text-base font-black text-amber-300" id="total-flotante">$0.00 MXN</p>
+            </div>
+        </div>
+        <button onclick="abrirModalCarrito()" class="bg-red-700 hover:bg-red-800 text-white font-extrabold px-5 sm:px-6 py-3 rounded-2xl shadow-md text-sm flex items-center gap-2 cursor-pointer transition border border-red-500/40"><span>Ver Pedido</span><i class="fa-solid fa-chevron-right text-xs"></i></button>
+    </div>
+</div>
+
+<!-- Modal del Carrito -->
+<div id="modal-carrito" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white text-gray-900 w-full max-w-lg rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+            <h2 class="text-base font-black text-gray-900 flex items-center gap-2"><i class="fa-solid fa-receipt text-red-700"></i> Tu Orden en Coyotaco®</h2>
+            <button onclick="cerrarModalCarrito()" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center justify-center font-bold text-sm cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 overflow-y-auto space-y-4 flex-1">
+            <div id="items-carrito" class="divide-y divide-gray-100 max-h-44 overflow-y-auto pr-1">
+                <p class="text-gray-400 text-sm py-4 text-center">Tu carrito está vacío</p>
+            </div>
+            <div class="border-t border-gray-100 pt-3 space-y-1 text-sm font-black text-gray-900">
+                <div id="resumen-subtotal-box" class="flex justify-between text-xs text-gray-600 font-medium"><span>Subtotal:</span><span id="subtotal-carrito">$0.00</span></div>
+                <div id="resumen-cargo-box" class="flex justify-between text-xs text-red-600 font-bold" style="display: none;"><span>Cargo Domicilio (10%):</span><span id="cargo-domicilio-carrito">$0.00</span></div>
+                <div class="flex justify-between text-lg pt-1"><span>Total a Pagar:</span><span id="total-carrito" class="text-red-700">$0.00</span></div>
+            </div>
+            <div class="space-y-3 pt-2 border-t border-gray-100">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Nombre Completo</label>
+                    <input type="text" id="nombre" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none" placeholder="Ej. Juan Pérez">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Teléfono / WhatsApp <span class="text-red-600 font-black">* Obligatorio</span></label>
+                    <input type="tel" id="telefono" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-600" placeholder="Ej. 5512345678">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Tipo de Servicio</label>
+                    <select id="tipoServicio" onchange="cambiarTipoServicio(); actualizarCarrito();" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-red-700 outline-none">
+                        <option value="Envío a Domicilio">🚲 Envío a Domicilio (Radio 4km - Mín. $250 + 10%)</option>
+                        <option value="Recoger en Sucursal">🛍️ Recoger en Sucursal</option>
+                    </select>
+                </div>
+                <div id="contenedor-colonia">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Colonia de Entrega (Dentro de 4 km)</label>
+                    <select id="select-colonia" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 outline-none">
+                        <option value="Pueblo de Los Reyes">Pueblo de Los Reyes (Zona Sur/Local)</option>
+                        <option value="Barrio del Niño Jesús">Barrio del Niño Jesús</option>
+                        <option value="El Rosedal">El Rosedal</option>
+                        <option value="Pedregal de Santo Domingo">Pedregal de Santo Domingo</option>
+                        <option value="Pueblo de La Candelaria">Pueblo de La Candelaria</option>
+                        <option value="Villa Coyoacán / Centro">Villa Coyoacán / Centro</option>
+                        <option value="Barrio de San Lucas">Barrio de San Lucas</option>
+                        <option value="Colonia Ajusco">Colonia Ajusco</option>
+                        <option value="Otra zona cercana">Otra zona cercana (Sujeto a confirmación)</option>
+                    </select>
+                </div>
+                <div id="contenedor-direccion">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Calle y Número Exterior / Interior</label>
+                    <textarea id="direccion" rows="2" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none" placeholder="Ej. Calle Monserrat #35, Int. 2"></textarea>
+                </div>
+                <div id="contenedor-obs-dir">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Indicaciones / Referencias de Domicilio</label>
+                    <input type="text" id="notaDireccion" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none" placeholder="Ej. Casa color blanca, zaguán negro...">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Forma de Pago</label>
+                    <select id="pago" onchange="toggleCambioEfectivo()" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta de crédito">Tarjeta de crédito (con terminal)</option>
+                    </select>
+                </div>
+                <div id="cambio-box" class="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">¿Requiere cambio de cuánto?</label>
+                    <input type="text" id="cambio-input" placeholder="Ej. $200 o $500" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Indicaciones Generales del Pedido</label>
+                    <input type="text" id="notaGlobal" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none" placeholder="Ej. Más limones, servilletas extras...">
+                </div>
+            </div>
+        </div>
+        <div class="p-4 border-t border-gray-100 bg-gray-50 flex gap-2 shrink-0">
+            <button onclick="enviarPedidoWhatsApp()" class="flex-2 bg-green-600 hover:bg-green-700 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-md flex items-center justify-center gap-2 text-xs cursor-pointer"><i class="fa-brands fa-whatsapp text-lg"></i> Enviar Pedido a WhatsApp</button>
+            <button onclick="vaciarCarrito()" class="flex-1 bg-red-700 hover:bg-red-800 text-white font-extrabold py-3.5 px-3 rounded-2xl shadow-md text-xs cursor-pointer">Cancelar 🗑️</button>
+        </div>
+    </div>
+</div>
+
+<!-- PANEL DE PEDIDOS (COCINA) -->
+<div id="vista-panel-cocina" style="display: none;" class="min-h-screen panel-bg text-white relative">
+    
+    <!-- Pantalla de Contraseña de Acceso -->
+    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md px-4">
+        <div class="bg-[#381f15] border border-amber-500/30 p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full text-center">
+            <div class="flex justify-center mb-4">
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-amber-500 bg-black/50 shadow-xl flex items-center justify-center p-1">
+                    <img src="logo.jpg.jpg" alt="Logo Oficial" class="w-full h-full object-contain">
+                </div>
+            </div>
+            <h2 class="logo-font text-3xl sm:text-4xl text-amber-400 mb-1">Panel de Pedidos</h2>
+            <p class="text-gray-300 text-xs sm:text-sm mb-6">Panel de control interno protegido</p>
+            <form onsubmit="handleLoginPanel(event)" class="space-y-4">
+                <input type="password" id="panel-password" placeholder="Contraseña de acceso" required class="w-full px-4 py-3 bg-[#1c0e08] border border-amber-900/50 rounded-2xl text-white placeholder-gray-400 text-xs sm:text-sm outline-none focus:border-amber-500 transition">
+                <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-gray-950 font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-2xl shadow-lg transition cursor-pointer">Entrar al Panel</button>
+            </form>
+            <button onclick="salirPanelCocinaRuta()" class="mt-4 text-xs text-gray-300 hover:text-amber-300 underline cursor-pointer">← Volver a la página principal</button>
+            <p id="error-msg-panel" class="text-red-400 text-xs mt-3 hidden font-semibold">Contraseña incorrecta. Intenta de nuevo.</p>
+        </div>
+    </div>
+
+    <!-- Contenido del Panel -->
+    <div id="panel-content-area" class="hidden max-w-7xl mx-auto p-3 sm:p-6 md:p-8 space-y-4 sm:space-y-6 relative z-10">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#1c0e08]/95 border border-amber-500/30 p-4 sm:p-6 rounded-3xl shadow-2xl backdrop-blur-md">
+            <div class="flex items-center gap-3 text-center sm:text-left flex-col sm:flex-row w-full sm:w-auto">
+                <div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-amber-500 bg-black/50 shrink-0 shadow-inner flex items-center justify-center p-1">
+                    <img src="logo.jpg.jpg" alt="Logo Oficial" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <h1 class="logo-font text-3xl sm:text-4xl text-amber-400 tracking-wide">Panel de Pedidos</h1>
+                    <p class="text-xs text-gray-300 font-medium">Control Operativo en Tiempo Real</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
+                <button onclick="activarAudioCocina()" id="btn-activar-audio-dashboard" class="col-span-2 sm:col-auto bg-amber-500 hover:bg-amber-600 text-gray-950 font-black text-xs px-4 py-2.5 rounded-xl shadow cursor-pointer transition animate-bounce flex items-center justify-center gap-1.5">🔔 Activar Chicharra Fuerte</button>
+                <button onclick="lockPanelSession()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-gray-700 transition cursor-pointer flex items-center justify-center">Bloquear</button>
+                <button onclick="salirPanelCocinaRuta()" class="bg-red-700 hover:bg-red-800 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition cursor-pointer shadow flex items-center justify-center gap-1.5"><i class="fa-solid fa-arrow-left"></i> Salir</button>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-[#1c0e08]/90 border border-amber-500/30 p-4 rounded-2xl backdrop-blur-sm shadow-xl">
+            <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 justify-center w-full lg:w-auto">
+                <button onclick="filtrarAdmin('TODOS')" id="filtro-btn-TODOS" class="bg-amber-600 hover:bg-amber-700 text-gray-950 font-black text-xs px-3.5 py-2.5 rounded-xl shadow cursor-pointer transition text-center">Todos</button>
+                <button onclick="filtrarAdmin('Recibido')" id="filtro-btn-Recibido" class="bg-gray-800 hover:bg-gray-700 text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded-xl border border-amber-500/20 cursor-pointer transition text-center">Recibidos</button>
+                <button onclick="filtrarAdmin('En preparación')" id="filtro-btn-En preparación" class="bg-gray-800 hover:bg-gray-700 text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded-xl border border-amber-500/20 cursor-pointer transition text-center">Preparación</button>
+                <button onclick="filtrarAdmin('En camino')" id="filtro-btn-En camino" class="bg-gray-800 hover:bg-gray-700 text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded-xl border border-amber-500/20 cursor-pointer transition text-center">Camino</button>
+                <button onclick="filtrarAdmin('Cancelado')" id="filtro-btn-Cancelado" class="bg-gray-800 hover:bg-gray-700 text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded-xl border border-amber-500/20 cursor-pointer transition col-span-2 sm:col-auto text-center">Cancelados</button>
+            </div>
+            <div class="flex items-center justify-between w-full lg:w-auto gap-4 border-t lg:border-t-0 pt-3 lg:pt-0 border-amber-500/20">
+                <span id="txt-estado-admin-toggle" class="text-xs font-bold text-amber-300">Estado: Automático</span>
+                <div class="flex gap-2">
+                    <button onclick="reiniciarFoliosAdminConPassword()" class="bg-amber-600 hover:bg-amber-700 text-gray-950 text-xs font-black px-3.5 py-2.5 rounded-xl cursor-pointer shadow">Reiniciar Folios (0001) 🔒</button>
+                    <button onclick="toggleForzarCierreAdmin()" id="btn-toggle-forzar" class="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl cursor-pointer shadow">Forzar Cierre</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="grid-pedidos-cocina" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <p class="text-xs text-gray-300 text-center col-span-full py-10">Cargando comandas en tiempo real...</p>
+        </div>
+    </div>
+</div>
+
+<!-- TICKET OCULTO PARA IMPRESIÓN -->
+<div id="ticket-impresion" style="display: none;">
+    <div style="text-align: center; font-family: monospace;">
+        <h3 style="margin:0; font-size:14px;">COYOTACO®</h3>
+        <p style="margin:2px 0; font-size:10px;">Monserrat 35, Los Reyes, Coyoacán</p>
+        <p style="margin:2px 0; font-size:10px;">Tel: 55 5338 3887</p>
+        <hr style="border-top: dashed 1px black; margin: 5px 0;">
+        <p style="text-align: left; margin:2px 0;"><strong>FOLIO:</strong> #<span id="ticket-folio">0001</span></p>
+        <p style="text-align: left; margin:2px 0;"><strong>FECHA:</strong> <span id="ticket-fecha"></span></p>
+        <p style="text-align: left; margin:2px 0;"><strong>CLIENTE:</strong> <span id="ticket-cliente"></span></p>
+        <p style="text-align: left; margin:2px 0;"><strong>SERVICIO:</strong> <span id="ticket-servicio"></span></p>
+        <p style="text-align: left; margin:2px 0;"><strong>DIRECCIÓN:</strong> <span id="ticket-dir"></span></p>
+        <div id="ticket-obs-dir-container" style="text-align: left; margin:2px 0;"><strong>REF:</strong> <span id="ticket-obs-dir"></span></div>
+        <p style="text-align: left; margin:2px 0;"><strong>PAGO:</strong> <span id="ticket-pago"></span></p>
+        <hr style="border-top: dashed 1px black; margin: 5px 0;">
+        <div id="ticket-items" style="text-align: left; font-size: 11px;"></div>
+        <hr style="border-top: dashed 1px black; margin: 5px 0;">
+        <div id="ticket-recargo-container" style="text-align: right; margin:2px 0; font-size: 10px;"><span id="ticket-txt-recargo"></span></div>
+        <p style="text-align: right; font-size: 13px; margin: 5px 0;"><strong>TOTAL: <span id="ticket-total"></span></strong></p>
+        <div id="ticket-obs-gen-container" style="text-align: left; margin:5px 0; font-size: 10px;"><strong>OBS:</strong> <span id="ticket-obs-gen"></span></div>
+        <hr style="border-top: dashed 1px black; margin: 5px 0;">
+        <p style="margin:5px 0 0 0; font-size:10px;">¡Gracias por su compra!<br>coyotaco.com</p>
+    </div>
+</div>
+
+<!-- FIREBASE SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- SCRIPT GENERAL -->
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAScFVX82Iq6kgYLokZ4Z2srb4F8QS-Xf4",
+        authDomain: "coyotaco-app.firebaseapp.com",
+        projectId: "coyotaco-app",
+        storageBucket: "coyotaco-app.firebasestorage.app",
+        messagingSenderId: "333760931457",
+        appId: "1:333760931457:web:5804b84fd2420455100f80",
+        measurementId: "G-5G89XXPTC3"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let dispositivoId = localStorage.getItem('coyotaco_dispositivo_id');
+    if (!dispositivoId) {
+        dispositivoId = 'disp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('coyotaco_dispositivo_id', dispositivoId);
+    }
+
+    let productos = [
+        { id: 101, nombre: "Sopa de fideo", desc: "Tradicional, con queso y crema.", precio: 60, categoria: "Sopas", personalizable: 'sopa_fideo', img: "Sopa De fideo.jpg" },
+        { id: 102, nombre: "Sopa azteca", desc: "Tiritas de tortilla frita, aguacate, queso panela, crema y chile pasilla.", precio: 75, categoria: "Sopas", personalizable: 'sopa_azteca', img: "Sopa azteca.jpg" },
+        { id: 103, nombre: "Frijoles charros", desc: "frijoles en caldillo de jitomate con cebolla, longaniza y rodajas de chile jalapeño", precio: 80, categoria: "Sopas", personalizable: 'frijoles_charros', img: "Frijoles charros.jpg" },
+        { id: 104, nombre: "Consomé de pollo", desc: "Consome de pollo con aguacate, arroz, verduras (papa y zanahoria) y chile chipotle.", precio: 85, categoria: "Sopas", personalizable: 'consome_pollo', img: "Consome de pollo.jpeg" },
+        { id: 105, nombre: "Charro poblano", desc: "Fajitas de bisteck con rajas de chile poblano, bañado con Frijoles charros y sazonado con salsa inglesa.", precio: 90, categoria: "Sopas", personalizable: 'salsa_multiple', img: "Charro Poblano.jpg" },
+        { id: 201, nombre: "Taco Individual Pastor (Maíz)", desc: "Sencillo o c/queso", precio: 25, precioQueso: 35, categoria: "Tacos Individuales", personalizable: 'taco', img: "pastor maiz.jpg" },
+        { id: 202, nombre: "Taco Individual Suadero (Maíz)", desc: "Sencillo o c/queso", precio: 25, precioQueso: 35, categoria: "Tacos Individuales", personalizable: 'taco', img: "Tacos individuales de suadero.jpg" },
+        { id: 203, nombre: "Taco Individual Campechano (Maíz)", desc: "Sencillo o c/queso", precio: 25, precioQueso: 35, categoria: "Tacos Individuales", personalizable: 'taco', img: "campechanos maiz.jpg" },
+        { id: 204, nombre: "Taco Individual Pastor (Harina)", desc: "Sencillo o c/queso", precio: 30, precioQueso: 40, categoria: "Tacos Individuales", personalizable: 'taco', img: "taco de pastor.jpg" },
+        { id: 205, nombre: "Taco Individual Suadero (Harina)", desc: "Sencillo o c/queso", precio: 30, precioQueso: 40, categoria: "Tacos Individuales", personalizable: 'taco', img: "suadero harina.jpg" },
+        { id: 206, nombre: "Taco Individual Campechano (Harina)", desc: "Sencillo o c/queso", precio: 30, precioQueso: 40, categoria: "Tacos Individuales", personalizable: 'taco', img: "campechanos harina.jpg" },
+        { id: 301, nombre: "Orden de Tacos al Pastor", desc: "Sencillo o c/queso", precio: 125, precioQueso: 145, categoria: "Orden de Tacos", personalizable: 'orden_tacos', img: "Orden de tacos de pastor.jpg" },
+        { id: 302, nombre: "Orden de Tacos de Suadero", desc: "Sencillo o c/queso", precio: 125, precioQueso: 145, categoria: "Orden de Tacos", personalizable: 'orden_tacos', img: "Orden de tacos de suadero.jpg" },
+        { id: 303, nombre: "Orden de Tacos de Bisteck", desc: "Sencillo o c/queso", precio: 125, precioQueso: 145, categoria: "Orden de Tacos", personalizable: 'orden_tacos', img: "Orden de tacos de suadero.jpg" },
+        { id: 304, nombre: "Orden de Tacos de Costilla", desc: "Sencillo o c/queso", precio: 125, precioQueso: 145, categoria: "Orden de Tacos", personalizable: 'orden_tacos', img: "orden de tacos de costilla.jpg" },
+        { id: 305, nombre: "Orden de Tacos de Chuleta", desc: "Sencillo o c/queso", precio: 125, precioQueso: 145, categoria: "Orden de Tacos", personalizable: 'orden_tacos', img: "Orden de tacos de chuleta.jpg" },
+        { id: 306, nombre: "Orden de Tacos de Pollo", desc: "Sencillo o c/queso", precio: 125, precioQueso: 145, categoria: "Orden de Tacos", personalizable: 'orden_tacos', img: "Orden de tacos de pollo.jpg" },
+        { id: 307, nombre: "Orden de Tacos de Longaniza", desc: "Sencillo o c/queso", precio: 125, precioQueso: 145, categoria: "Orden de Tacos", personalizable: 'orden_tacos', img: "Orden de tacos de longaniza.jpg" },
+        { id: 308, nombre: "Orden de Tacos de Arrachera", desc: "Sencillo o c/queso", precio: 135, precioQueso: 155, categoria: "Orden de Tacos", personalizable: 'orden_tacos', img: "Orden de tacos de arrachera.jpg" },
+        { id: 401, nombre: "Champiñones", desc: "Champiñones asados tradicionales.", precio: 75, precioQueso: 95, categoria: "Acompañamientos", personalizable: 'acompanamiento_queso', img: "Champiñones asados.jpg" },
+        { id: 403, nombre: "Champiñón Encebollado", desc: "Champiñones asados acompañados de cebolla.", precio: 75, precioQueso: 95, categoria: "Acompañamientos", personalizable: 'acompanamiento_queso', img: "champiñon encebollado.jpg" },
+        { id: 405, nombre: "Nopal", desc: "Nopales asados tradicionales.", precio: 50, precioQueso: 70, categoria: "Acompañamientos", personalizable: 'acompanamiento_queso', img: "orden de nopal asado.jpg" },
+        { id: 406, nombre: "Nopal preparado", desc: "Nopal preparado de la casa", precio: 60, categoria: "Acompañamientos", img: "nopales preparados.jpg" },
+        { id: 408, nombre: "Aguacate", desc: "Porción de aguacate fresco", precio: 50, categoria: "Acompañamientos", img: "Orden De Aguacate.jpg" },
+        { id: 409, nombre: "Cebollitas", desc: "Orden de cebollitas", precio: 50, categoria: "Acompañamientos", img: "Orden de cebollas asadas.jpg" },
+        { id: 410, nombre: "Cebollitas preparadas", desc: "Cebollitas preparadas", precio: 60, categoria: "Acompañamientos", img: "Orden de cebollas preparadas.jpg" },
+        { id: 411, nombre: "Chilequeso", desc: "Julianas De Chile Poblano Con Queso", precio: 80, categoria: "Acompañamientos", img: "Chilequeso.jpg" },
+        { id: 501, nombre: "Torta de Jamón", desc: "Sencillo o c/queso", precio: 55, precioQueso: 70, categoria: "Tortas", personalizable: 'torta', img: "Torta de jamon.jpg" },
+        { id: 502, nombre: "Torta Vegetariana", desc: "Sencillo o c/queso", precio: 55, precioQueso: 80, categoria: "Tortas", personalizable: 'torta', img: "Torta vegetariana.jpg" },
+        { id: 503, nombre: "Torta de Huevo", desc: "Sencillo o c/queso", precio: 55, precioQueso: 80, categoria: "Tortas", personalizable: 'torta', img: "Torta de huevo.jpg" },
+        { id: 504, nombre: "Torta de Salchicha", desc: "Sencillo o c/queso", precio: 55, precioQueso: 80, categoria: "Tortas", personalizable: 'torta', img: "Torta de salchicha.jpg" },
+        { id: 505, nombre: "Torta de Queso", desc: "De Quesillo Derretido", precio: 60, categoria: "Tortas", personalizable: 'torta', img: "Torta de queso.jpg" },
+        { id: 506, nombre: "Torta Hawaiana", desc: "Sencillo o c/queso", precio: 65, precioQueso: 85, categoria: "Tortas", personalizable: 'torta', img: "Torta hawaiana.jpg" },
+        { id: 507, nombre: "Torta Pierna española", desc: "Sencillo o c/queso", precio: 65, precioQueso: 85, categoria: "Tortas", personalizable: 'torta', img: "Torta pierna española.jpg" },
+        { id: 508, nombre: "Torta de Milanesa", desc: "Sencillo o c/queso", precio: 65, precioQueso: 85, categoria: "Tortas", personalizable: 'torta', img: "Torta de milanesa.jpg" },
+        { id: 509, nombre: "Torta de Pastor", desc: "Sencillo o c/queso", precio: 65, precioQueso: 85, categoria: "Tortas", personalizable: 'torta', img: "Torta De Pastor.jpg" },
+        { id: 510, nombre: "Torta de Suadero", desc: "Sencillo o c/queso", precio: 65, precioQueso: 85, categoria: "Tortas", personalizable: 'torta', img: "Torta de suadero.jpg" },
+        { id: 511, nombre: "Torta de Bisteck", desc: "Sencillo o c/queso", precio: 65, precioQueso: 85, categoria: "Tortas", personalizable: 'torta', img: "Torta de bisteck.jpg" },
+        { id: 512, nombre: "Torta de Costilla", desc: "Sencillo o c/queso", precio: 65, precioQueso: 85, categoria: "Tortas", personalizable: 'torta', img: "Torta de costilla.jpg" },
+        { id: 513, nombre: "Torta de Chuleta", desc: "Sencillo o c/queso", precio: 65, precioQueso: 85, categoria: "Tortas", personalizable: 'torta', img: "Torta de chuleta.jpg" },
+        { id: 514, nombre: "Torta de Pollo", desc: "Sencillo o c/queso", precio: 65, precioQueso: 85, categoria: "Tortas", personalizable: 'torta', img: "Torta de pollo.jpg" },
+        { id: 515, nombre: "Torta de Longaniza", desc: "Sencillo o c/queso", precio: 65, precioQueso: 85, categoria: "Tortas", personalizable: 'torta', img: "Torta de longaniza.jpg" },
+        { id: 516, nombre: "Torta de Arrachera", desc: "Sencillo o c/queso", precio: 75, precioQueso: 95, categoria: "Tortas", personalizable: 'torta', img: "Torta de arrachera.jpg" },
+        { id: 517, nombre: "Coyotorta", desc: "Sencillo o c/queso", precio: 75, precioQueso: 95, categoria: "Tortas", personalizable: 'torta', img: "Coyotorta.jpg" },
+        { id: 601, nombre: "Sincronizada", desc: "Sincronizada clásica", precio: 60, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Sincronizada.jpg" },
+        { id: 602, nombre: "Gringa de Pastor", desc: "Gringa con pastor y queso", precio: 85, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Gringa de pastor.jpg" },
+        { id: 603, nombre: "Gringa de Suadero", desc: "Gringa con suadero y queso", precio: 85, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Gringa de suadero.jpg" },
+        { id: 604, nombre: "Gringa de Bisteck", desc: "Gringa con bisteck y queso", precio: 85, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Gringa de bisteck.jpg" },
+        { id: 605, nombre: "Gringa de Costilla", desc: "Gringa con costilla y queso", precio: 85, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Gringa de costilla.jpg" },
+        { id: 606, nombre: "Gringa de Chuleta", desc: "Gringa con chuleta y queso", precio: 85, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Gringa de chuleta.jpg" },
+        { id: 607, nombre: "Gringa de Pollo", desc: "Gringa con pollo y queso", precio: 85, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Gringa de pollo.jpg" },
+        { id: 608, nombre: "Gringa de Longaniza", desc: "Gringa con longaniza y queso", precio: 85, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Gringa de longaniza.jpg" },
+        { id: 609, nombre: "Gringa de Arrachera", desc: "Gringa con arrachera y queso", precio: 90, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Gringa de arrachera.jpg" },
+        { id: 610, nombre: "Gringa Combinada", desc: "Gringa combinada especial", precio: 90, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Gringa combinada.jpg" },
+        { id: 611, nombre: "Gringa Coyotaco", desc: "Gringa especial de la casa", precio: 90, categoria: "Gringas", personalizable: 'salsa_multiple', img: "Gringa coyotaco.jpg" },
+        { id: 701, nombre: "Burrito de Pastor", desc: "Tortilla gigante de harina", precio: 115, categoria: "Burritos", personalizable: 'burrito', img: "Burrito de Pastor.jpg" },
+        { id: 702, nombre: "Burrito de Suadero", desc: "Tortilla gigante de harina", precio: 115, categoria: "Burritos", personalizable: 'burrito', img: "Burrito de suadero.jpg" },
+        { id: 703, nombre: "Burrito de Bisteck", desc: "Tortilla gigante de harina", precio: 115, categoria: "Burritos", personalizable: 'burrito', img: "Burrito de bisteck.jpg" },
+        { id: 704, nombre: "Burrito de Costilla", desc: "Tortilla gigante de harina", precio: 115, categoria: "Burritos", personalizable: 'burrito', img: "Burrito de costilla.jpg" },
+        { id: 705, nombre: "Burrito de Chuleta", desc: "Tortilla gigante de harina", precio: 115, categoria: "Burritos", personalizable: 'burrito', img: "Burrito de chuleta.jpg" },
+        { id: 706, nombre: "Burrito de Pollo", desc: "Tortilla gigante de harina", precio: 115, categoria: "Burritos", personalizable: 'burrito', img: "Burrito de pollo.jpg" },
+        { id: 707, nombre: "Burrito de Longaniza", desc: "Tortilla gigante de harina", precio: 115, categoria: "Burritos", personalizable: 'burrito', img: "Burrito de longaniza.jpg" },
+        { id: 708, nombre: "Burrito de Arrachera", desc: "Tortilla gigante de harina", precio: 130, categoria: "Burritos", personalizable: 'burrito', img: "Burrito de arrachera.jpg" },
+        { id: 709, nombre: "Burrito Combinado", desc: "Tortilla gigante de harina", precio: 130, categoria: "Burritos", personalizable: 'burrito', img: "Burrito combinado.jpg" },
+        { id: 710, nombre: "Burrito Coyotaco", desc: "Tortilla gigante de harina", precio: 130, categoria: "Burritos", personalizable: 'burrito', img: "Burrito coyotaco.jpg" },
+        { id: 801, nombre: "Alambre Vegetariano", desc: "Mezcla con cebolla, tocino", precio: 110, precioQueso: 130, categoria: "Alambres", personalizable: 'alambre', img: "Alambre vegetariano.jpg" },
+        { id: 802, nombre: "Alambre de Suadero", desc: "Mezcla con cebolla, tocino", precio: 140, precioQueso: 170, categoria: "Alambres", personalizable: 'alambre', img: "Alambre de suadero.jpg" },
+        { id: 803, nombre: "Alambre de Pastor", desc: "Mezcla con cebolla, tocino", precio: 140, precioQueso: 170, categoria: "Alambres", personalizable: 'alambre', img: "alambre de pastor.jpg" },
+        { id: 804, nombre: "Alambre de Bisteck", desc: "Mezcla con cebolla, tocino", precio: 140, precioQueso: 170, categoria: "Alambres", personalizable: 'alambre', img: "Alambre de bisteck.jpg" },
+        { id: 805, nombre: "Alambre de Costilla", desc: "Mezcla con cebolla, tocino", precio: 140, precioQueso: 170, categoria: "Alambres", personalizable: 'alambre', img: "Alambre de costilla.jpg" },
+        { id: 806, nombre: "Alambre de Chuleta", desc: "Mezcla con cebolla, tocino", precio: 140, precioQueso: 170, categoria: "Alambres", personalizable: 'alambre', img: "Alambre de chuleta.jpg" },
+        { id: 807, nombre: "Alambre de Pollo", desc: "Mezcla con cebolla, tocino", precio: 140, precioQueso: 170, categoria: "Alambres", personalizable: 'alambre', img: "alambre de pollo.jpg" },
+        { id: 808, nombre: "Alambre de Longaniza", desc: "Mezcla con cebolla, tocino", precio: 140, precioQueso: 170, categoria: "Alambres", personalizable: 'alambre', img: "Alambre de longaniza.jpg" },
+        { id: 809, nombre: "Alambre de Arrachera", desc: "Mezcla con cebolla, tocino", precio: 150, precioQueso: 180, categoria: "Alambres", personalizable: 'alambre', img: "alambre de arrachera.jpg" },
+        { id: 810, nombre: "Alambre Coyotaco", desc: "Mezcla con cebolla, tocino", precio: 150, precioQueso: 180, categoria: "Alambres", personalizable: 'alambre', img: "Alambre coyotaco.jpg" },
+        { id: 901, nombre: "Sope Sencillo", desc: "Sope tradicional", precio: 35, categoria: "Sopes", personalizable: 'salsa_multiple', img: "Sope  Con queso.jpg" },
+        { id: 902, nombre: "Sope Gratinado", desc: "Sope con queso", precio: 50, categoria: "Sopes", personalizable: 'salsa_multiple', img: "sope gratinado.jpg" },
+        { id: 903, nombre: "Sope de Pastor", desc: "Sope con pastor", precio: 60, categoria: "Sopes", personalizable: 'salsa_multiple', img: "sope de pastor.jpg" },
+        { id: 904, nombre: "Sope de Suadero", desc: "Sope con suadero", precio: 60, categoria: "Sopes", personalizable: 'salsa_multiple', img: "sope de suadero.jpg" },
+        { id: 905, nombre: "Sope de Bisteck", desc: "Sope con bisteck", precio: 60, categoria: "Sopes", personalizable: 'salsa_multiple', img: "sope de bistec.jpg" },
+        { id: 906, nombre: "Sope de Costilla", desc: "Sope con costilla", precio: 60, categoria: "Sopes", personalizable: 'salsa_multiple', img: "sope de costilla.jpg" },
+        { id: 907, nombre: "Sope de Chuleta", desc: "Sope con chuleta", precio: 60, categoria: "Sopes", personalizable: 'salsa_multiple', img: "Sope de chuleta.jpg" },
+        { id: 908, nombre: "Sope de Pollo", desc: "Sope con pollo", precio: 60, categoria: "Sopes", personalizable: 'salsa_multiple', img: "sope de pollo.jpg" },
+        { id: 909, nombre: "Sope de Longaniza", desc: "Sope con longaniza", precio: 60, categoria: "Sopes", personalizable: 'salsa_multiple', img: "sope de longaniza.jpg" },
+        { id: 910, nombre: "Sope de Arrachera", desc: "Sope con arrachera", precio: 65, categoria: "Sopes", personalizable: 'salsa_multiple', img: "sope arrachera.jpg" },
+        { id: 911, nombre: "Sope Coyotaco", desc: "Sope especial", precio: 65, categoria: "Sopes", personalizable: 'salsa_multiple', img: "Sope coyotaco.jpg" },
+        { id: 1001, nombre: "Volcán de Pastor", desc: "Volcán con pastor", precio: 90, categoria: "Volcanes", personalizable: 'salsa_multiple', img: "Volcan De Pastor.jpg" },
+        { id: 1002, nombre: "Volcán de Suadero", desc: "Volcán con suadero", precio: 90, categoria: "Volcanes", personalizable: 'salsa_multiple', img: "Volcan de suadero.jpg" },
+        { id: 1003, nombre: "Volcán de Bisteck", desc: "Volcán con bisteck", precio: 90, categoria: "Volcanes", personalizable: 'salsa_multiple', img: "Volcan de bisteck.jpg" },
+        { id: 1004, nombre: "Volcán de Costilla", desc: "Volcán con costilla", precio: 90, categoria: "Volcanes", personalizable: 'salsa_multiple', img: "Volcan de costilla.jpg" },
+        { id: 1005, nombre: "Volcán de Chuleta", desc: "Volcán con chuleta", precio: 90, categoria: "Volcanes", personalizable: 'salsa_multiple', img: "Volcan de chuleta.jpg" },
+        { id: 1006, nombre: "Volcán de Pollo", desc: "Volcán con pollo", precio: 90, categoria: "Volcanes", personalizable: 'salsa_multiple', img: "Volcan de pollo.jpg" },
+        { id: 1007, nombre: "Volcán de Longaniza", desc: "Volcán con longaniza", precio: 90, categoria: "Volcanes", personalizable: 'salsa_multiple', img: "Volcan de longaniza.jpg" },
+        { id: 1008, nombre: "Volcán de Arrachera", desc: "Volcán con arrachera", precio: 105, categoria: "Volcanes", personalizable: 'salsa_multiple', img: "Volcan de arrachera.jpg" },
+        { id: 1101, nombre: "Quesadilla Sencilla", desc: "Tortilla maíz o harina con queso", precio: 40, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "Quesadilla sencilla.jpg" },
+        { id: 1102, nombre: "Quesadilla de Nopal", desc: "Quesadilla con nopal", precio: 50, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "Quesadilla de nopal.jpg" },
+        { id: 1103, nombre: "Quesadilla de Champiñón", desc: "Quesadilla con champiñón", precio: 55, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "Quesadilla de champiñón.jpg" },
+        { id: 1104, nombre: "Quesadilla de Pastor", desc: "Quesadilla con pastor", precio: 60, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "Quesadilla de pastor.jpg" },
+        { id: 1105, nombre: "Quesadilla de Suadero", desc: "Quesadilla con suadero", precio: 60, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "Quesadilla de suadero.jpg" },
+        { id: 1106, nombre: "Quesadilla de Bisteck", desc: "Quesadilla con bisteck", precio: 60, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "Quesadilla de bisteck.jpg" },
+        { id: 1107, nombre: "Quesadilla de Costilla", desc: "Quesadilla con costilla", precio: 60, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "quesadilla de costilla.jpg" },
+        { id: 1108, nombre: "Quesadilla de Chuleta", desc: "Quesadilla con chuleta", precio: 60, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "quesadilla de chuleta.jpg" },
+        { id: 1109, nombre: "Quesadilla de Pollo", desc: "Quesadilla con pollo", precio: 60, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "Quesadilla de pollo.jpg" },
+        { id: 1110, nombre: "Quesadilla de Longaniza", desc: "Quesadilla con longaniza", precio: 60, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "Quesadilla de longaniza.jpg" },
+        { id: 1111, nombre: "Quesadilla de Arrachera", desc: "Quesadilla con arrachera", precio: 65, categoria: "Quesadillas", personalizable: 'salsa_multiple', img: "Quesadilla de arrachera.jpg" },
+        { id: 1201, nombre: "Queso Fundido Tradicional", desc: "Queso fundido caliente", precio: 130, categoria: "Quesos Fundidos", personalizable: 'queso_fundido', img: "Quesp fundido tradicional.jpg" },
+        { id: 1202, nombre: "Queso Fundido con Longaniza", desc: "Queso fundido con longaniza", precio: 150, categoria: "Quesos Fundidos", personalizable: 'queso_fundido', img: "Queso fundido con longaniza.jpg" },
+        { id: 1203, nombre: "Queso Fundido con Champiñón", desc: "Queso fundido con champiñón", precio: 150, categoria: "Quesos Fundidos", personalizable: 'queso_fundido', img: "Queso Fundido con Champiñón.jpg" },
+        { id: 1301, nombre: "Costra de Carne", desc: "Costra de queso crujiente", precio: 70, categoria: "Costras", personalizable: 'salsa_multiple', img: "costra de carne.jpg" },
+        { id: 1302, nombre: "Costra de Arrachera", desc: "Costra de queso con arrachera", precio: 80, categoria: "Costras", personalizable: 'salsa_multiple', img: "costra de arrachera.jpg" },
+        { id: 1303, nombre: "Chicharrón de queso", desc: "Chicharrón de queso crujiente", precio: 130, categoria: "Costras", personalizable: 'salsa_multiple', img: "Chicharron De queso.jpg" },
+        { id: 1400, nombre: "Coyotaco", desc: "Nuestra especialidad de la casa. Receta única con el mejor sazón tradicional.", precio: 150, precioQueso: 180, categoria: "Especialidad de la Casa y Combinaciones", destaque: true, personalizable: 'especialidad_casa', img: "Coyotaco.jpg" },
+        { id: 1401, nombre: "Bistec", desc: "Elige tu combinación favorita de bistec.", precio: 130, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'combinacion_desplegable', img: "combinacion bstec con nopal.jpg" },
+        { id: 1408, nombre: "Costilla", desc: "Elige tu combinación favorita de costilla.", precio: 130, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'combinacion_desplegable', img: "orden de tacos de costilla.jpg" },
+        { id: 1414, nombre: "Chuleta", desc: "Elige tu combinación favorita de chuleta.", precio: 130, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'combinacion_desplegable', img: "Orden de tacos de chuleta.jpg" },
+        { id: 1420, nombre: "Pollo", desc: "Elige tu combinación favorita de pollo.", precio: 130, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'combinacion_desplegable', img: "combinacion pollo con nopal.jpg" },
+        { id: 1426, nombre: "Arrachera", desc: "Elige tu combinación favorita de arrachera.", precio: 150, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'combinacion_desplegable', img: "arrachera con guarnicion.jpg" },
+        { id: 1501, nombre: "Agua embotellada", desc: "Agua purificada 600 ml", precio: 30, categoria: "Bebidas", img: "agua embotellada (2).jpg" },
+        { id: 1502, nombre: "Agua de Jamaica", desc: "Vaso de 500 ml", precio: 40, categoria: "Bebidas", img: "agua de jamaica.jpg" },
+        { id: 1503, nombre: "Agua de Horchata", desc: "Vaso de 500 ml", precio: 40, categoria: "Bebidas", img: "agua de horchata.jpg" },
+        { id: 1504, nombre: "Refresco de botella", desc: "Refresco en botella de vidrio de 355 ml (Incluye $10 de importe de envase).", precio: 35, categoria: "Bebidas", personalizable: 'refresco_botella', img: "refresco de botella.jpg" },
+        { id: 1505, nombre: "Refresco Pet 400ml", desc: "Refresco PET 400ml. Incluye opción de Agua mineral.", precio: 35, categoria: "Bebidas", personalizable: 'refresco_pet', img: "refresco pet.jpg" },
+        { id: 1506, nombre: "Limonada", desc: "Vaso de 500 ml", precio: 45, categoria: "Bebidas", personalizable: 'limonada_naranjada', img: "limonada.jpg" },
+        { id: 1507, nombre: "Naranjada", desc: "Vaso de 500 ml", precio: 45, categoria: "Bebidas", personalizable: 'limonada_naranjada', img: "naranjada.jpg" },
+        { id: 1508, nombre: "Café de Olla", desc: "Café tradicional de olla con gran sabor.", precio: 35, precioCrema: 45, categoria: "Bebidas", personalizable: 'cafe_crema', img: "cafe de olla.jpg" },
+        { id: 1601, nombre: "Corona", desc: "Sola $50 | Michelada $70 | Cubana $80", precio: 50, categoria: "Cervezas", personalizable: 'cerveza', img: "Corona.jpg" },
+        { id: 1602, nombre: "Victoria", desc: "Sola $50 | Michelada $70 | Cubana $80", precio: 50, categoria: "Cervezas", personalizable: 'cerveza', img: "Victoria.jpg" },
+        { id: 1603, nombre: "Negra Modelo", desc: "Sola $60 | Michelada $70 | Cubana $80", precio: 60, categoria: "Cervezas", personalizable: 'cerveza', img: "negra modelo.jpg" },
+        { id: 1604, nombre: "Modelo Especial", desc: "Sola $60 | Michelada $70 | Cubana $80", precio: 60, categoria: "Cervezas", personalizable: 'cerveza', img: "modelo especial.jpg" },
+        { id: 1701, nombre: "Arroz con leche", desc: "Postre casero", precio: 40, categoria: "Postres", personalizable: 'arroz_con_leche', img: "Arroz con leche.jpg" },
+        { id: 1702, nombre: "Pay de limón", desc: "Pay de limón refrescante", precio: 40, categoria: "Postres", img: "Pay de limon.jpg" },
+        { id: 1703, nombre: "Pay de elote", desc: "Pay de elote casero", precio: 50, categoria: "Postres", img: "Pay de elote.jpg" },
+        { id: 1704, nombre: "Flan napolitano", desc: "Flan cremoso con caramelo", precio: 50, categoria: "Postres", img: "Flan napolitano.jpg" }
+    ];
+
+    let carrito = [];
+    let categoriaSeleccionada = 'TODOS';
+    let productoEnEdicion = null;
+    let varianteActualEnEdicion = 'Estándar';
+    let filtroAdminActual = 'TODOS';
+    let pedidosGlobales = [];
+    let primerCargaAdmin = true;
+    let negocioForzarCierre = false;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        actualizarContadorOpiniones();
+        mostrarMenu();
+        toggleCambioEfectivo();
+        cambiarTipoServicio();
+        verificarEstadoNegocio();
+        setInterval(verificarEstadoNegocio, 30000);
+
+        verificarRutaCocina();
+        window.addEventListener('hashchange', verificarRutaCocina);
+
+        if (localStorage.getItem('coyotaco_audio_activo') === 'true') {
+            const btn = document.getElementById("btn-activar-audio-dashboard");
+            if (btn) {
+                btn.classList.remove("animate-bounce", "bg-amber-500");
+                btn.classList.add("bg-green-600", "text-white");
+                btn.innerHTML = "✅ Chicharra Activa";
+            }
+        }
+
+        document.getElementById("btn-ver-reseñas").addEventListener("click", abrirModalReseñas);
+        document.getElementById("btn-dejar-reseña").addEventListener("click", abrirModalOpinion);
+        document.getElementById("cerrar-modal-reseñas").addEventListener("click", cerrarModalReseñas);
+        document.getElementById("cerrar-modal-opinion").addEventListener("click", cerrarModalOpinion);
+
+        db.ref('configuracion/forzarCierre').on('value', (snapshot) => {
+            negocioForzarCierre = snapshot.val() === true;
+            actualizarUIEstadoNegocio();
+        });
+
+        db.ref('pedidos').on('value', (snapshot) => {
+            const data = snapshot.val();
+            let lista = [];
+            if (data) {
+                lista = Object.values(data);
+                lista.sort((a, b) => b.id - a.id);
+            }
+            if (!primerCargaAdmin && lista.length > pedidosGlobales.length) {
+                reproducirChicharraCocinaFuerte();
+            }
+            primerCargaAdmin = false;
+            pedidosGlobales = lista;
+
+            if (window.location.hash === '#/cocina') {
+                renderizarPedidosCocinaDashboard();
+            }
+        });
+    });
+
+    function verificarRutaCocina() {
+        if (window.location.hash === '#/cocina') {
+            document.getElementById("vista-portada").style.display = "none";
+            document.getElementById("vista-menu").style.display = "none";
+            document.getElementById("vista-panel-cocina").style.display = "block";
+            
+            if (sessionStorage.getItem('coyotaco_auth_panel') === 'true') {
+                document.getElementById("auth-screen").classList.add("hidden");
+                document.getElementById("panel-content-area").classList.remove("hidden");
+                renderizarPedidosCocinaDashboard();
+            } else {
+                document.getElementById("auth-screen").classList.remove("hidden");
+                document.getElementById("panel-content-area").classList.add("hidden");
+            }
+        } else {
+            document.getElementById("vista-panel-cocina").style.display = "none";
+            document.getElementById("vista-portada").style.display = "flex";
+        }
+    }
+
+    function handleLoginPanel(event) {
+        event.preventDefault();
+        const pass = document.getElementById('panel-password').value;
+        if (pass === "coyotaco2026" || pass === "admin123") {
+            document.getElementById("auth-screen").classList.add("hidden");
+            document.getElementById("panel-content-area").classList.remove("hidden");
+            sessionStorage.setItem('coyotaco_auth_panel', 'true');
+            renderizarPedidosCocinaDashboard();
+        } else {
+            document.getElementById("error-msg-panel").classList.remove("hidden");
+        }
+    }
+
+    function lockPanelSession() {
+        sessionStorage.removeItem('coyotaco_auth_panel');
+        document.getElementById("panel-content-area").classList.add("hidden");
+        document.getElementById("auth-screen").classList.remove("hidden");
+        document.getElementById('panel-password').value = '';
+    }
+
+    function salirPanelCocinaRuta() {
+        window.location.hash = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function estaAbiertoElNegocio() {
+        if (negocioForzarCierre) return false;
+        const ahora = new Date();
+        const dia = ahora.getDay();
+        const hora = ahora.getHours();
+        const minutos = ahora.getMinutes();
+        const tiempoMinutos = hora * 60 + minutos;
+        if (dia === 1) return false;
+        return tiempoMinutos >= 840;
+    }
+
+    function esCercaDelCierre() {
+        if (negocioForzarCierre) return false;
+        const ahora = new Date();
+        const dia = ahora.getDay();
+        const hora = ahora.getHours();
+        const minutos = ahora.getMinutes();
+        const tiempoMinutos = hora * 60 + minutos;
+        let cierreMinutos = (dia === 5 || dia === 6) ? 1500 : 1440;
+        let inicioAviso = cierreMinutos - 30;
+        return tiempoMinutos >= inicioAviso && tiempoMinutos < cierreMinutos;
+    }
+
+    function verificarEstadoNegocio() { actualizarUIEstadoNegocio(); }
+
+    function actualizarUIEstadoNegocio() {
+        const abierto = estaAbiertoElNegocio();
+        const cercaCierre = esCercaDelCierre();
+        const dotGlobal = document.getElementById("dot-global");
+        const txtGlobal = document.getElementById("txt-estado-global");
+        const badgeGlobal = document.getElementById("badge-estado-global");
+        const txtAdminToggle = document.getElementById("txt-estado-admin-toggle");
+        const btnToggleAdmin = document.getElementById("btn-toggle-forzar");
+        const bannerCierre = document.getElementById("banner-aviso-cierre");
+
+        if (cercaCierre) {
+            bannerCierre.classList.remove("hidden");
+            const selectServicio = document.getElementById("tipoServicio");
+            if (selectServicio) {
+                selectServicio.value = "Recoger en Sucursal";
+                selectServicio.disabled = true;
+                cambiarTipoServicio();
+            }
+        } else {
+            bannerCierre.classList.add("hidden");
+            const selectServicio = document.getElementById("tipoServicio");
+            if (selectServicio) selectServicio.disabled = false;
+        }
+
+        if (abierto) {
+            if(dotGlobal) { dotGlobal.className = "w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"; txtGlobal.innerText = "Abierto"; badgeGlobal.className = "bg-green-900/80 border border-green-500/50 text-green-300 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow"; }
+            if(txtAdminToggle) { txtAdminToggle.innerText = "Estado: 🟢 Abierto"; btnToggleAdmin.innerText = "Forzar Cierre"; }
+        } else {
+            if(dotGlobal) { dotGlobal.className = "w-2.5 h-2.5 rounded-full bg-red-500"; txtGlobal.innerText = "Cerrado"; badgeGlobal.className = "bg-red-950 border border-red-500/50 text-red-300 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow"; }
+            if(txtAdminToggle) { txtAdminToggle.innerText = "Estado: 🔴 Cerrado"; btnToggleAdmin.innerText = "Abrir Negocio"; }
+        }
+    }
+
+    function toggleForzarCierreAdmin() {
+        const nuevoEstado = !negocioForzarCierre;
+        db.ref('configuracion/forzarCierre').set(nuevoEstado).then(() => {
+            alert(nuevoEstado ? "Negocio marcado como CERRADO manualmente." : "Negocio abierto de nuevo.");
+        });
+    }
+
+    function reiniciarFoliosAdminConPassword() {
+        const pass = prompt("Introduce la contraseña de administrador para reiniciar los folios a 0001:");
+        if (pass === "coyotaco2026" || pass === "admin123") {
+            db.ref('contadorFolio').set(0).then(() => {
+                alert("¡Contador de folios reiniciado exitosamente a 0!");
+            });
+        } else if (pass !== null) {
+            alert("Contraseña incorrecta.");
+        }
+    }
+
+    function intentarIrAlMenu() {
+        if (!estaAbiertoElNegocio()) {
+            document.getElementById("modal-aviso-cerrado").classList.remove("hidden");
+            return;
+        }
+        irAlMenu();
+    }
+
+    function cerrarModalAvisoCerrado() {
+        document.getElementById("modal-aviso-cerrado").classList.add("hidden");
+        irAlMenu();
+    }
+
+    function activarAudioCocina() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            reproducirChicharraCocinaFuerte();
+            localStorage.setItem('coyotaco_audio_activo', 'true');
+            const btn = document.getElementById("btn-activar-audio-dashboard");
+            if(btn) {
+                btn.classList.remove("animate-bounce", "bg-amber-500");
+                btn.classList.add("bg-green-600", "text-white");
+                btn.innerHTML = "✅ Chicharra Activa";
+            }
+        } catch (e) {
+            alert("No se pudo habilitar el audio automáticamente.");
+        }
+    }
+
+    function reproducirChicharraCocinaFuerte() {
+        if (localStorage.getItem('coyotaco_audio_activo') !== 'true') return;
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            for (let i = 0; i < 3; i++) {
+                let startTime = audioCtx.currentTime + (i * 0.4);
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, startTime);
+                osc.frequency.setValueAtTime(1200, startTime + 0.15);
+                gain.gain.setValueAtTime(1.0, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + 0.35);
+            }
+        } catch (e) {
+            console.log("Audio bloqueado");
+        }
+    }
+
+    function seleccionarEstrellas(n) {
+        document.getElementById("valor-estrellas").value = n;
+        const estrellas = document.querySelectorAll("#estrellas-calificacion i");
+        estrellas.forEach((estrella, index) => {
+            estrella.className = index < n ? "fa-solid fa-star text-amber-500 cursor-pointer" : "fa-regular fa-star text-amber-500 cursor-pointer";
+        });
+    }
+
+    function enviarOpinionWhatsApp() {
+        const nombre = document.getElementById("nombre-opinion").value.trim();
+        const estrellas = document.getElementById("valor-estrellas").value;
+        const comentario = document.getElementById("texto-opinion").value.trim();
+        if (!nombre) return alert("Por favor ingresa tu nombre.");
+        if (!comentario) return alert("Por favor escribe tu comentario o sugerencia.");
+
+        let opiniones = JSON.parse(localStorage.getItem('coyotaco_opiniones') || '[]');
+        opiniones.unshift({ nombre, estrellas, comentario, fecha: new Date().toLocaleDateString() });
+        localStorage.setItem('coyotaco_opiniones', JSON.stringify(opiniones));
+        actualizarContadorOpiniones();
+
+        let msg = `⭐ *OPINIÓN / RESEÑA - COYOTACO®* 🐺\n\n👤 *Cliente:* ${nombre}\n🌟 *Calificación:* ${estrellas} de 5 estrellas\n💬 *Mensaje:* ${comentario}\n\n¡Gracias por ayudarnos a mejorar!`;
+        cerrarModalOpinion();
+        window.open(`https://api.whatsapp.com/send?phone=5215533012756&text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function actualizarContadorOpiniones() {
+        let opiniones = JSON.parse(localStorage.getItem('coyotaco_opiniones') || '[]');
+        document.getElementById("contador-opiniones").innerText = opiniones.length;
+    }
+
+    function abrirModalPersonalizarEspecialidadPortada() {
+        const prodEsp = productos.find(p => p.destaque);
+        if (prodEsp) abrirModalPersonalizarEspecialidad(prodEsp.id);
+        else agregarAlCarritoEspecialidadPortada('Sencillo', 150);
+    }
+
+    function agregarAlCarritoEspecialidadPortada(variante, precio) {
+        const prodEsp = productos.find(p => p.destaque);
+        const nombreProd = prodEsp ? prodEsp.nombre : "Coyotaco";
+        const nombreFinal = `${nombreProd} (${variante})`;
+        const index = carrito.findIndex(item => item.nombre === nombreFinal);
+        if (index !== -1) carrito[index].cantidad++;
+        else carrito.push({ nombre: nombreFinal, precio: precio, variante: variante, cantidad: 1 });
+        actualizarCarrito();
+        abrirModalCarrito();
+    }
+
+    function irAlMenu() {
+        document.getElementById("vista-portada").style.display = "none";
+        document.getElementById("vista-menu").style.display = "block";
+        filtrarCategoria('TODOS');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function regresarPortada() {
+        document.getElementById("vista-menu").style.display = "none";
+        document.getElementById("vista-portada").style.display = "flex";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function abrirModalReseñas() {
+        const contenedor = document.getElementById("lista-reseñas-guardadas");
+        contenedor.innerHTML = "";
+        let opiniones = JSON.parse(localStorage.getItem('coyotaco_opiniones') || '[]');
+        if (opiniones.length === 0) {
+            contenedor.innerHTML = `<p class="text-center text-gray-400 py-8 text-xs">Aún no hay reseñas registradas.</p>`;
+        } else {
+            opiniones.forEach(op => {
+                let estrellasHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    estrellasHtml += `<i class="fa-solid fa-star ${i <= op.estrellas ? 'text-amber-500' : 'text-gray-200'} text-xs"></i>`;
+                }
+                contenedor.innerHTML += `
+                    <div class="bg-gray-50 p-3 rounded-2xl border border-gray-200 space-y-1">
+                        <div class="flex justify-between items-center"><span class="font-bold text-xs text-gray-900">${op.nombre}</span><span class="text-[10px] text-gray-400">${op.fecha}</span></div>
+                        <div class="flex gap-0.5">${estrellasHtml}</div>
+                        <p class="text-xs text-gray-600 mt-1">${op.comentario}</p>
+                    </div>`;
+            });
+        }
+        document.getElementById("modal-reseñas").classList.remove("hidden");
+    }
+
+    function cerrarModalReseñas() { document.getElementById("modal-reseñas").classList.add("hidden"); }
+    function abrirModalOpinion() { document.getElementById("modal-opinion").classList.remove("hidden"); }
+    function cerrarModalOpinion() { document.getElementById("modal-opinion").classList.add("hidden"); }
+
+    function cambiarTipoServicio() {
+        if (esCercaDelCierre()) document.getElementById("tipoServicio").value = "Recoger en Sucursal";
+        const tipo = document.getElementById("tipoServicio").value;
+        const esRecoger = (tipo === "Recoger en Sucursal");
+        document.getElementById("contenedor-colonia").style.display = esRecoger ? "none" : "block";
+        document.getElementById("contenedor-direccion").style.display = esRecoger ? "none" : "block";
+        document.getElementById("contenedor-obs-dir").style.display = esRecoger ? "none" : "block";
+    }
+
+    function toggleCambioEfectivo() {
+        const pago = document.getElementById("pago").value;
+        document.getElementById("cambio-box").style.display = (pago === "Efectivo") ? "block" : "none";
+    }
+
+    function toggleMenuCategorias() {
+        document.getElementById("dropdown-categorias").classList.toggle("hidden");
+        document.getElementById("icono-flecha-cat").classList.toggle("rotate-180");
+    }
+
+    function cerrarDropdown() {
+        document.getElementById("dropdown-categorias").classList.add("hidden");
+        document.getElementById("icono-flecha-cat").classList.remove("rotate-180");
+    }
+
+    function filtrarCategoria(cat) {
+        categoriaSeleccionada = cat;
+        let nombreMostrar = (cat === 'TODOS') ? "MENÚ" : cat;
+        document.getElementById("label-categoria-actual").innerHTML = `<i class="fa-solid fa-bars"></i> ${nombreMostrar}`;
+        mostrarMenu();
+    }
+
+    function vaciarCarrito() { carrito = []; actualizarCarrito(); }
+
+    function mostrarMenu() {
+        const contenedor = document.getElementById("lista-productos");
+        contenedor.innerHTML = "";
+        let filtrados = (categoriaSeleccionada === 'TODOS') ? productos : productos.filter(p => p.categoria === categoriaSeleccionada);
+
+        if (filtrados.length === 0) {
+            contenedor.innerHTML = `<p class="text-center text-red-200/60 py-10 text-sm">No se encontraron productos en esta categoría.</p>`;
+            return;
+        }
+
+        const categoriasOrdenadas = [
+            "Especialidad de la Casa y Combinaciones", "Sopas", "Tacos Individuales", "Orden de Tacos", 
+            "Acompañamientos", "Tortas", "Gringas", "Burritos", "Alambres", "Sopes", "Volcanes", 
+            "Quesadillas", "Quesos Fundidos", "Costras", "Bebidas", "Cervezas", "Postres"
+        ];
+        
+        categoriasOrdenadas.forEach(cat => {
+            if (categoriaSeleccionada === 'TODOS' || categoriaSeleccionada === cat) {
+                const prodsCat = filtrados.filter(p => p.categoria === cat);
+                if (prodsCat.length > 0) {
+                    let htmlCards = '';
+                    let tarjetaEspecialidadHtml = '';
+
+                    prodsCat.forEach(prod => {
+                        if (prod.destaque) {
+                            tarjetaEspecialidadHtml = `
+                                <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-red-500/30 text-gray-900 grid grid-cols-1 md:grid-cols-2 items-center mb-6">
+                                    <div class="w-full h-72 md:h-full min-h-[300px] relative overflow-hidden bg-gray-100 flex items-center justify-center p-4">
+                                        <img src="${prod.img}" alt="${prod.nombre}" id="img-esp-menu-${prod.id}" class="w-full h-full object-contain drop-shadow-md" onerror="this.src='https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500'">
+                                    </div>
+                                    <div class="p-6 sm:p-8 space-y-4 text-center md:text-left">
+                                        <span class="inline-block bg-amber-400 text-gray-950 font-black text-sm sm:text-base px-6 py-2 rounded-full uppercase tracking-widest shadow-md border border-amber-500" id="esp-tag">ESPECIALIDAD</span>
+                                        <h3 class="logo-font text-5xl sm:text-6xl font-extrabold text-red-600 uppercase tracking-wide" id="esp-titulo">${prod.nombre}</h3>
+                                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed font-medium" id="esp-desc">${prod.desc}</p>
+                                        <div class="text-gray-900 font-black text-base sm:text-lg">Sencillo: <span class="text-red-600">$150</span> | c/queso: <span class="text-red-600">$180</span></div>
+                                        <div class="pt-2">
+                                            <button onclick="abrirModalPersonalizarEspecialidad(${prod.id})" class="w-full bg-red-700 hover:bg-red-800 text-white font-black text-xs uppercase tracking-wider py-3.5 px-4 rounded-xl shadow transition cursor-pointer">Agregar / Personalizar ($150 / $180)</button>
+                                        </div>
+                                    </div>
+                                </div>`;
+                        } else {
+                            let onclickAccion = `agregar(${prod.id})`;
+                            if (prod.personalizable === 'arroz_con_leche') onclickAccion = `abrirModalArrozConLeche(${prod.id})`;
+                            else if (prod.personalizable === 'taco') onclickAccion = `abrirModalPersonalizarTaco(${prod.id})`;
+                            else if (prod.personalizable === 'orden_tacos') onclickAccion = `abrirModalPersonalizarOrdenTacos(${prod.id})`;
+                            else if (prod.personalizable === 'torta') onclickAccion = `abrirModalPersonalizarTorta(${prod.id})`;
+                            else if (prod.personalizable === 'burrito') onclickAccion = `abrirModalPersonalizarBurrito(${prod.id})`;
+                            else if (prod.personalizable === 'sopa_fideo') onclickAccion = `abrirModalSopaFideo(${prod.id})`;
+                            else if (prod.personalizable === 'sopa_azteca') onclickAccion = `abrirModalSopaAzteca(${prod.id})`;
+                            else if (prod.personalizable === 'frijoles_charros') onclickAccion = `abrirModalFrijolesCharros(${prod.id})`;
+                            else if (prod.personalizable === 'consome_pollo') onclickAccion = `abrirModalConsomePollo(${prod.id})`;
+                            else if (prod.personalizable === 'alambre') onclickAccion = `abrirModalPersonalizarAlambre(${prod.id})`;
+                            else if (prod.personalizable === 'salsa_multiple') onclickAccion = `abrirModalPersonalizarSalsaMultiple(${prod.id})`;
+                            else if (prod.personalizable === 'queso_fundido') onclickAccion = `abrirModalPersonalizarQuesoFundido(${prod.id})`;
+                            else if (prod.personalizable === 'limonada_naranjada') onclickAccion = `abrirModalPersonalizarLimonadaNaranjada(${prod.id})`;
+                            else if (prod.personalizable === 'cafe_crema') onclickAccion = `abrirModalPersonalizarCafe(${prod.id})`;
+                            else if (prod.personalizable === 'cerveza') onclickAccion = `abrirModalPersonalizarCerveza(${prod.id})`;
+                            else if (prod.personalizable === 'acompanamiento_queso') onclickAccion = `abrirModalPersonalizarAcompanamiento(${prod.id})`;
+                            else if (prod.personalizable === 'refresco_pet' || prod.personalizable === 'refresco_botella') onclickAccion = `abrirModalPersonalizarRefresco(${prod.id})`;
+
+                            let isArrachera = prod.nombre.includes("Arrachera");
+                            let baseP = 130, qP = 150;
+                            let nopP = isArrachera ? 150 : 135, nopQP = 155;
+                            let champP = isArrachera ? 160 : 145, champQP = isArrachera ? 165 : 165;
+                            let aguP = isArrachera ? 160 : 145, aguQP = isArrachera ? 165 : 165;
+                            let tocP = isArrachera ? 160 : 155, tocQP = isArrachera ? 170 : 175;
+                            let longP = isArrachera ? 165 : 155, longQP = isArrachera ? 170 : 175;
+                            let guarSinP = isArrachera ? 170 : 160, guarConP = isArrachera ? 190 : 180;
+
+                            let opcionesSelectHtml = isArrachera ? `
+                                <option value="Con nopal|${nopP}">Con nopal — $${nopP}</option>
+                                <option value="Nopal y queso|${nopQP}">Nopal y queso — $${nopQP}</option>
+                                <option value="Con champiñón|${champP}">Con champiñón — $${champP}</option>
+                                <option value="Champiñón y queso|${champQP}">Champiñón y queso — $${champQP}</option>
+                                <option value="Con aguacate|${aguP}">Con aguacate — $${aguP}</option>
+                                <option value="Aguacate y queso|${aguQP}">Aguacate y queso — $${aguQP}</option>
+                                <option value="Con tocino|${tocP}">Con tocino — $${tocP}</option>
+                                <option value="Tocino y queso|${tocQP}">Tocino y queso — $${tocQP}</option>
+                                <option value="Con longaniza|${longP}">Con longaniza — $${longP}</option>
+                                <option value="Longaniza y queso|${longQP}">Longaniza y queso — $${longQP}</option>
+                                <option value="Guarnición sin queso|${guarSinP}">Guarnición sin queso — $${guarSinP}</option>
+                                <option value="Guarnición con queso|${guarConP}">Guarnición con queso — $${guarConP}</option>
+                            ` : `
+                                <option value="Con cebolla|${baseP}">Con cebolla — $${baseP}</option>
+                                <option value="Cebolla y queso|${qP}">Cebolla y queso — $${qP}</option>
+                                <option value="Con nopal|${nopP}">Con nopal — $${nopP}</option>
+                                <option value="Nopal y queso|${nopQP}">Nopal y queso — $${nopQP}</option>
+                                <option value="Con champiñón|${champP}">Con champiñón — $${champP}</option>
+                                <option value="Champiñón y queso|${champQP}">Champiñón y queso — $${champQP}</option>
+                                <option value="Con aguacate|${aguP}">Con aguacate — $${aguP}</option>
+                                <option value="Aguacate y queso|${aguQP}">Aguacate y queso — $${aguQP}</option>
+                                <option value="Con tocino|${tocP}">Con tocino — $${tocP}</option>
+                                <option value="Tocino y queso|${tocQP}">Tocino y queso — $${tocQP}</option>
+                                <option value="Con longaniza|${longP}">Con longaniza — $${longP}</option>
+                                <option value="Longaniza y queso|${longQP}">Longaniza y queso — $${longQP}</option>
+                                <option value="Guarnición sin queso|${guarSinP}">Guarnición sin queso — $${guarSinP}</option>
+                                <option value="Guarnición con queso|${guarConP}">Guarnición con queso — $${guarConP}</option>
+                            `;
+
+                            htmlCards += `
+                                <div class="bg-[#1c0e08]/90 rounded-3xl shadow-lg border border-red-600/30 overflow-hidden flex flex-col justify-between hover:border-red-500 transition">
+                                    <div>
+                                        <div class="img-card-container">
+                                            <img src="${prod.img}" alt="${prod.nombre}" onerror="this.src='https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400'">
+                                        </div>
+                                        <div class="p-4 space-y-1">
+                                            <h3 class="font-bold text-white text-xs sm:text-sm line-clamp-1">${prod.nombre}</h3>
+                                            <p class="text-[11px] text-gray-300 line-clamp-2 leading-relaxed">${prod.desc}</p>
+                                        </div>
+                                    </div>
+                                    <div class="p-4 pt-0 flex flex-col gap-2 border-t border-red-900/40 mt-2">
+                                        ${prod.personalizable === 'combinacion_desplegable' ? `
+                                        <div class="space-y-2 pt-1">
+                                            <select id="select-comb-${prod.id}" class="w-full bg-[#2c150c] text-amber-300 text-[11px] font-bold py-2 px-2.5 rounded-xl border border-amber-500/40 outline-none cursor-pointer">
+                                                ${opcionesSelectHtml}
+                                            </select>
+                                            <button onclick="abrirModalCombinacionConSalsa(${prod.id}, '${prod.nombre}')" class="w-full bg-red-700 hover:bg-red-800 text-white text-xs font-bold py-2 px-3.5 rounded-xl shadow cursor-pointer transition flex items-center justify-center gap-1">
+                                                <i class="fa-solid fa-plus text-[10px]"></i> Agregar
+                                            </button>
+                                        </div>` : `
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-amber-300 font-black text-sm sm:text-base">$${prod.precio.toFixed(2)}</span>
+                                            <button onclick="${onclickAccion}" class="bg-red-700 hover:bg-red-800 text-white text-xs font-bold py-2 px-3.5 rounded-xl shadow cursor-pointer transition flex items-center gap-1">
+                                                <i class="fa-solid fa-plus text-[10px]"></i> Agregar
+                                            </button>
+                                        </div>`}
+                                    </div>
+                                </div>`;
+                        }
+                    });
+
+                    if (cat === "Especialidad de la Casa y Combinaciones") {
+                        contenedor.innerHTML += `
+                            <div class="space-y-4">
+                                <h3 class="text-xl sm:text-2xl font-black text-red-500 border-b border-red-900/50 pb-2 uppercase tracking-wider">${cat}</h3>
+                                ${tarjetaEspecialidadHtml}
+                                <h3 class="text-xl sm:text-2xl font-black text-amber-300 pt-4 pb-1 uppercase tracking-wider">Combinaciones</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">${htmlCards}</div>
+                            </div>`;
+                    } else {
+                        contenedor.innerHTML += `
+                            <div class="space-y-4">
+                                <h3 class="text-xl sm:text-2xl font-black text-red-500 border-b border-red-900/50 pb-2 uppercase tracking-wider">${cat}</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">${htmlCards}</div>
+                            </div>`;
+                    }
+                }
+            }
+        });
+    }
+
+    function generarHtmlSalsasMultiples(prefijo = 'salsa') {
+        return `
+            <label class="block text-xs font-bold text-gray-800 mb-1">Elige tus Salsas (Puedes marcar varias):</label>
+            <div class="space-y-1.5 bg-gray-50 p-3 rounded-xl border border-gray-200">
+                <label class="flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer"><input type="checkbox" name="${prefijo}-multi" value="Salsa Verde" class="w-4 h-4 text-red-600 rounded"> Salsa Verde Tradicional</label>
+                <label class="flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer"><input type="checkbox" name="${prefijo}-multi" value="Salsa Roja" class="w-4 h-4 text-red-600 rounded"> Salsa Roja de Pasilla</label>
+                <label class="flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer"><input type="checkbox" name="${prefijo}-multi" value="Salsa Coyotaco" class="w-4 h-4 text-red-600 rounded"> Salsa Coyotaco (Especial)</label>
+                <label class="flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer"><input type="checkbox" name="${prefijo}-multi" value="Salsa Mexicana" class="w-4 h-4 text-red-600 rounded"> Salsa Mexicana</label>
+                <label class="flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer"><input type="checkbox" name="${prefijo}-multi" value="Salsa de Piña" class="w-4 h-4 text-red-600 rounded"> Salsa de Piña</label>
+            </div>`;
+    }
+
+    function obtenerSalsasSeleccionadas(prefijo = 'salsa') {
+        const checkboxes = document.querySelectorAll(`input[name="${prefijo}-multi"]:checked`);
+        let seleccionadas = [];
+        checkboxes.forEach(cb => seleccionadas.push(cb.value));
+        return seleccionadas.length > 0 ? `Salsas: [${seleccionadas.join(', ')}]` : 'Sin salsas';
+    }
+
+    // ARROZ CON LECHE (CON / SIN CANELA)
+    function abrirModalArrozConLeche(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Opción de Canela:</label>
+                    <select id="opc-arroz-canela" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Con canela">Con canela</option>
+                        <option value="Sin canela">Sin canela</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarRefresco(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            let esBotella = productoEnEdicion.personalizable === 'refresco_botella';
+            let notaImporteHtml = esBotella ? `<p class="text-[11px] text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200">ℹ️ Refresco en botella de vidrio de 355 ml. Se cobran <strong>$10 de importe</strong> por envase.</p>` : `<p class="text-[11px] text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200">ℹ️ Refresco PET.</p>`;
+            document.getElementById("modal-titulo-personalizar").innerText = `Elegir Sabor: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                ${notaImporteHtml}
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Sabor de Refresco / Opción:</label>
+                    <select id="opc-sabor-refresco" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Coca-Cola">Coca-Cola</option>
+                        <option value="Pepsi">Pepsi</option>
+                        <option value="Manzanita Sol">Manzanita Sol</option>
+                        <option value="7 Up">7 Up</option>
+                        <option value="Squirt">Squirt</option>
+                        <option value="Mirinda">Mirinda</option>
+                        <option value="Sangría">Sangría</option>
+                        <option value="Agua mineral">Agua mineral</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarEspecialidad(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar Especialidad: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Tortilla:</label>
+                    <select id="opc-esp-tortilla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Tortilla de Maíz">Tortilla de Maíz</option>
+                        <option value="Tortilla de Harina">Tortilla de Harina</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Opción de Queso:</label>
+                    <select id="opc-esp-queso" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Sencillo|150">Sencillo — $150</option>
+                        <option value="Con Queso|180">Con Queso — $180</option>
+                    </select>
+                </div>
+                ${generarHtmlSalsasMultiples('esp')}`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalCombinacionConSalsa(idProd, nombreBase) {
+        const selectEl = document.getElementById(`select-comb-${idProd}`);
+        if (!selectEl) return;
+        const partes = selectEl.value.split('|');
+        const combinacionNombre = partes[0];
+        const precioFinal = parseFloat(partes[1]);
+        
+        productoEnEdicion = productos.find(item => item.id === idProd);
+        varianteActualEnEdicion = combinacionNombre;
+
+        document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${nombreBase} (${combinacionNombre})`;
+        document.getElementById("contenido-opciones-modal").innerHTML = `
+            <input type="hidden" id="temp-precio-comb" value="${precioFinal}">
+            <input type="hidden" id="temp-nombre-comb" value="${nombreBase} (${combinacionNombre})">
+            <div class="mb-3">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Tortilla:</label>
+                <select id="opc-comb-tortilla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                    <option value="Tortilla de Maíz">Tortilla de Maíz</option>
+                    <option value="Tortilla de Harina">Tortilla de Harina</option>
+                </select>
+            </div>
+            ${generarHtmlSalsasMultiples('comb')}`;
+        document.getElementById("modal-personalizar").classList.remove("hidden");
+    }
+
+    function abrirModalPersonalizarTaco(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            let precioBase = productoEnEdicion.precio;
+            let precioQueso = productoEnEdicion.precioQueso || (precioBase + 10);
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Opción de Queso:</label>
+                    <select id="opc-taco-queso" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Sencillo|${precioBase}">Sencillo — $${precioBase}</option>
+                        <option value="Con Queso|${precioQueso}">Con Queso — $${precioQueso}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Cebolla:</label>
+                    <select id="opc-cebolla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con cebolla">Con cebolla</option>
+                        <option value="Sin cebolla">Sin cebolla</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Cilantro:</label>
+                    <select id="opc-cilantro" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con cilantro">Con cilantro</option>
+                        <option value="Sin cilantro">Sin cilantro</option>
+                    </select>
+                </div>
+                ${generarHtmlSalsasMultiples('taco')}`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarOrdenTacos(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            let precioBase = productoEnEdicion.precio;
+            let precioQueso = productoEnEdicion.precioQueso || (precioBase + 20);
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar Orden: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Tortilla:</label>
+                    <select id="opc-orden-tortilla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Tortilla de Maíz">Tortilla de Maíz</option>
+                        <option value="Tortilla de Harina">Tortilla de Harina</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Opción de Queso:</label>
+                    <select id="opc-orden-queso" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Sencillo|${precioBase}">Sencillo — $${precioBase}</option>
+                        <option value="Con Queso|${precioQueso}">Con Queso — $${precioQueso}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Cebolla:</label>
+                    <select id="opc-orden-cebolla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con cebolla">Con cebolla</option>
+                        <option value="Sin cebolla">Sin cebolla</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Cilantro:</label>
+                    <select id="opc-orden-cilantro" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con cilantro">Con cilantro</option>
+                        <option value="Sin cilantro">Sin cilantro</option>
+                    </select>
+                </div>
+                ${generarHtmlSalsasMultiples('orden')}`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarTorta(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            let precioBase = productoEnEdicion.precio;
+            let precioQueso = productoEnEdicion.precioQueso || (precioBase + 15);
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar Torta: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Opción de Queso:</label>
+                    <select id="opc-torta-queso" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Sencillo|${precioBase}">Sencillo — $${precioBase}</option>
+                        <option value="Con Queso|${precioQueso}">Con Queso — $${precioQueso}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Picante:</label>
+                    <select id="opc-picante-torta" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con Rajas">Rajas</option>
+                        <option value="Con Chipotle">Chipotle</option>
+                        <option value="Sin picante">Sin picante</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Lechuga:</label>
+                    <select id="opc-lechuga-torta" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Con lechuga">Con lechuga</option>
+                        <option value="Sin lechuga">Sin lechuga</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarBurrito(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar Burrito: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Frijoles:</label>
+                    <select id="opc-frijoles-burrito" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con frijoles">Con frijoles</option>
+                        <option value="Sin frijoles">Sin frijoles</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Queso:</label>
+                    <select id="opc-queso-burrito" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con queso">Con queso</option>
+                        <option value="Sin queso">Sin queso</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Cebolla:</label>
+                    <select id="opc-cebolla-burrito" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con cebolla">Con cebolla</option>
+                        <option value="Sin cebolla">Sin cebolla</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Cilantro:</label>
+                    <select id="opc-cilantro-burrito" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con cilantro">Con cilantro</option>
+                        <option value="Sin cilantro">Sin cilantro</option>
+                    </select>
+                </div>
+                ${generarHtmlSalsasMultiples('burrito')}`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalSopaFideo(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Crema:</label>
+                    <select id="opc-crema-sopa" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con crema">Con crema</option>
+                        <option value="Sin crema">Sin crema</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Queso:</label>
+                    <select id="opc-queso-sopa" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Con queso">Con queso</option>
+                        <option value="Sin queso">Sin queso</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalSopaAzteca(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Queso:</label>
+                    <select id="opc-queso-azteca" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con queso">Con queso</option>
+                        <option value="Sin queso">Sin queso</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Chile:</label>
+                    <select id="opc-chile-azteca" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con chile">Con chile</option>
+                        <option value="Sin chile">Sin chile</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Crema:</label>
+                    <select id="opc-crema-azteca" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con crema">Con crema</option>
+                        <option value="Sin crema">Sin crema</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Aguacate:</label>
+                    <select id="opc-aguacate-azteca" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Con aguacate">Con aguacate</option>
+                        <option value="Sin aguacate">Sin aguacate</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalFrijolesCharros(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Longaniza:</label>
+                    <select id="opc-longaniza-frijoles" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con longaniza">Con longaniza</option>
+                        <option value="Sin longaniza">Sin longaniza</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Cebolla:</label>
+                    <select id="opc-cebolla-frijoles" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con cebolla">Con cebolla</option>
+                        <option value="Sin cebolla">Sin cebolla</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Chile Jalapeño:</label>
+                    <select id="opc-jalapeno-frijoles" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Con jalapeño">Con jalapeño</option>
+                        <option value="Sin jalapeño">Sin jalapeño</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalConsomePollo(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Verdura:</label>
+                    <select id="opc-verdura-consome" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con verdura">Con verdura</option>
+                        <option value="Sin verdura">Sin verdura</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Chipotle:</label>
+                    <select id="opc-chipotle-consome" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con chipotle">Con chipotle</option>
+                        <option value="Sin chipotle">Sin chipotle</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Arroz:</label>
+                    <select id="opc-arroz-consome" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con arroz">Con arroz</option>
+                        <option value="Sin arroz">Sin arroz</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Aguacate:</label>
+                    <select id="opc-aguacate-consome" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Con aguacate">Con aguacate</option>
+                        <option value="Sin aguacate">Sin aguacate</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarAlambre(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            let precioBase = productoEnEdicion.precio;
+            let precioQueso = productoEnEdicion.precioQueso || (precioBase + 30);
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar Alambre: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Tortilla:</label>
+                    <select id="opc-alambre-tortilla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Tortilla de Maíz">Tortilla de Maíz</option>
+                        <option value="Tortilla de Harina">Tortilla de Harina</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Opción de Queso:</label>
+                    <select id="opc-alambre-queso" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Sencillo|${precioBase}">Sencillo (Sin queso) — $${precioBase}</option>
+                        <option value="Con Queso|${precioQueso}">Con Queso — $${precioQueso}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Cebolla:</label>
+                    <select id="opc-alambre-cebolla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con cebolla">Con cebolla</option>
+                        <option value="Sin cebolla">Sin cebolla</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Pimiento:</label>
+                    <select id="opc-alambre-pimiento" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con pimiento">Con pimiento</option>
+                        <option value="Sin pimiento">Sin pimiento</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tocino:</label>
+                    <select id="opc-alambre-tocino" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Con tocino">Con tocino</option>
+                        <option value="Sin tocino">Sin tocino</option>
+                    </select>
+                </div>
+                ${generarHtmlSalsasMultiples('alambre')}`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarSalsaMultiple(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = generarHtmlSalsasMultiples('simple');
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarQuesoFundido(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Tortilla:</label>
+                    <select id="opc-tortilla-fundido" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Tortilla de Maíz">Tortilla de Maíz</option>
+                        <option value="Tortilla de Harina">Tortilla de Harina</option>
+                    </select>
+                </div>
+                ${generarHtmlSalsasMultiples('fundido')}`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarLimonadaNaranjada(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tipo:</label>
+                    <select id="opc-tipo-limonada" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                        <option value="Mineral">Mineral</option>
+                        <option value="Natural">Natural</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Endulzante:</label>
+                    <select id="opc-endulzante-limonada" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Con endulzante">Con endulzante</option>
+                        <option value="Sin endulzante">Sin endulzante</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarCafe(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Opción de Crema:</label>
+                    <select id="opc-cafe-crema" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Sin Crema">Sin Crema ($35)</option>
+                        <option value="Con Crema">Con Crema ($45)</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarCerveza(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            document.getElementById("modal-titulo-personalizar").innerText = `Seleccionar Estilo: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Elige preparación:</label>
+                    <select id="opc-estilo-cerveza" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Sola|${productoEnEdicion.precio}">Sola — $${productoEnEdicion.precio}</option>
+                        <option value="Michelada|70">Michelada — $70</option>
+                        <option value="Cubana|80">Cubana — $80</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function abrirModalPersonalizarAcompanamiento(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        varianteActualEnEdicion = 'Estándar';
+        if (productoEnEdicion) {
+            let precioBase = productoEnEdicion.precio;
+            let precioQueso = productoEnEdicion.precioQueso || (precioBase + 20);
+            document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+            document.getElementById("contenido-opciones-modal").innerHTML = `
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Versión:</label>
+                    <select id="opc-version-acompanamiento" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Sencillo|${precioBase}">Sencillo — $${precioBase}</option>
+                        <option value="Con Queso|${precioQueso}">Con Queso — $${precioQueso}</option>
+                    </select>
+                </div>`;
+            document.getElementById("modal-personalizar").classList.remove("hidden");
+        }
+    }
+
+    function cerrarModalPersonalizar() {
+        document.getElementById("modal-personalizar").classList.add("hidden");
+        productoEnEdicion = null;
+    }
+
+    function confirmarPersonalizacion() {
+        if (!productoEnEdicion) return;
+
+        let precioFinal = productoEnEdicion.precio;
+        let nombreCompleto = productoEnEdicion.nombre;
+        let detallesExtraParts = [];
+
+        // Capturar Canela para Arroz con Leche
+        if (document.getElementById("opc-arroz-canela")) {
+            const canelaElegida = document.getElementById("opc-arroz-canela").value;
+            detallesExtraParts.push(canelaElegida);
+        } else if (document.getElementById("opc-sabor-refresco")) {
+            const saborElegido = document.getElementById("opc-sabor-refresco").value;
+            nombreCompleto = `${productoEnEdicion.nombre} (${saborElegido})`;
+            if (productoEnEdicion.personalizable === 'refresco_botella') {
+                precioFinal = productoEnEdicion.precio + 10;
+                detallesExtraParts.push("Incluye $10 importe envase de vidrio 355ml");
+            }
+        } else if (document.getElementById("opc-esp-queso")) {
+            const tortillaElegida = document.getElementById("opc-esp-tortilla").value;
+            const partsEsp = document.getElementById("opc-esp-queso").value.split('|');
+            nombreCompleto = partsEsp[0] === "Con Queso" ? `${productoEnEdicion.nombre} (Con Queso - ${tortillaElegida})` : `${productoEnEdicion.nombre} (${tortillaElegida})`;
+            precioFinal = parseFloat(partsEsp[1]);
+            detallesExtraParts.push(obtenerSalsasSeleccionadas('esp'));
+        } else if (document.getElementById("temp-nombre-comb")) {
+            const tortillaComb = document.getElementById("opc-comb-tortilla").value;
+            const nombreBaseComb = document.getElementById("temp-nombre-comb").value;
+            nombreCompleto = `${nombreBaseComb} (${tortillaComb})`;
+            precioFinal = parseFloat(document.getElementById("temp-precio-comb").value);
+            detallesExtraParts.push(obtenerSalsasSeleccionadas('comb'));
+        } else if (document.getElementById("opc-estilo-cerveza")) {
+            const seleccion = document.getElementById("opc-estilo-cerveza").value.split('|');
+            if (seleccion[0] !== "Sola") nombreCompleto = `${productoEnEdicion.nombre} (${seleccion[0]})`;
+            precioFinal = parseFloat(seleccion[1]);
+        } else if (document.getElementById("opc-version-acompanamiento")) {
+            const partsAcc = document.getElementById("opc-version-acompanamiento").value.split('|');
+            if (partsAcc[0] === "Con Queso") nombreCompleto = `${productoEnEdicion.nombre} (Con Queso)`;
+            precioFinal = parseFloat(partsAcc[1]);
+        } else if (document.getElementById("opc-taco-queso")) {
+            const partsT = document.getElementById("opc-taco-queso").value.split('|');
+            if (partsT[0] === "Con Queso") nombreCompleto = `${productoEnEdicion.nombre} (Con Queso)`;
+            precioFinal = parseFloat(partsT[1]);
+            detallesExtraParts.push(document.getElementById("opc-cebolla").value);
+            detallesExtraParts.push(document.getElementById("opc-cilantro").value);
+            detallesExtraParts.push(obtenerSalsasSeleccionadas('taco'));
+        } else if (document.getElementById("opc-orden-queso")) {
+            const tortillaOrden = document.getElementById("opc-orden-tortilla").value;
+            const partsOrd = document.getElementById("opc-orden-queso").value.split('|');
+            nombreCompleto = partsOrd[0] === "Con Queso" ? `${productoEnEdicion.nombre} (Con Queso - ${tortillaOrden})` : `${productoEnEdicion.nombre} (${tortillaOrden})`;
+            precioFinal = parseFloat(partsOrd[1]);
+            detallesExtraParts.push(document.getElementById("opc-orden-cebolla").value);
+            detallesExtraParts.push(document.getElementById("opc-orden-cilantro").value);
+            detallesExtraParts.push(obtenerSalsasSeleccionadas('orden'));
+        } else if (document.getElementById("opc-torta-queso")) {
+            const partsTo = document.getElementById("opc-torta-queso").value.split('|');
+            if (partsTo[0] === "Con Queso") nombreCompleto = `${productoEnEdicion.nombre} (Con Queso)`;
+            precioFinal = parseFloat(partsTo[1]);
+            detallesExtraParts.push(document.getElementById("opc-picante-torta").value);
+            detallesExtraParts.push(document.getElementById("opc-lechuga-torta").value);
+        } else if (document.getElementById("opc-alambre-queso")) {
+            const partsAl = document.getElementById("opc-alambre-queso").value.split('|');
+            if (partsAl[0] === "Con Queso") nombreCompleto = `${productoEnEdicion.nombre} (Con Queso)`;
+            precioFinal = parseFloat(partsAl[1]);
+            detallesExtraParts.push(document.getElementById("opc-alambre-tortilla").value);
+            detallesExtraParts.push(document.getElementById("opc-alambre-cebolla").value);
+            detallesExtraParts.push(document.getElementById("opc-alambre-pimiento").value);
+            detallesExtraParts.push(document.getElementById("opc-alambre-tocino").value);
+            detallesExtraParts.push(obtenerSalsasSeleccionadas('alambre'));
+        } else {
+            if (document.getElementById("opc-picante-torta")) {
+                detallesExtraParts.push(document.getElementById("opc-picante-torta").value);
+                detallesExtraParts.push(document.getElementById("opc-lechuga-torta").value);
+            } else if (document.getElementById("opc-frijoles-burrito")) {
+                detallesExtraParts.push(document.getElementById("opc-frijoles-burrito").value);
+                detallesExtraParts.push(document.getElementById("opc-queso-burrito").value);
+                detallesExtraParts.push(document.getElementById("opc-cebolla-burrito").value);
+                detallesExtraParts.push(document.getElementById("opc-cilantro-burrito").value);
+                detallesExtraParts.push(obtenerSalsasSeleccionadas('burrito'));
+            } else if (document.getElementById("opc-crema-sopa")) {
+                detallesExtraParts.push(document.getElementById("opc-crema-sopa").value);
+                detallesExtraParts.push(document.getElementById("opc-queso-sopa").value);
+            } else if (document.getElementById("opc-queso-azteca")) {
+                detallesExtraParts.push(document.getElementById("opc-queso-azteca").value);
+                detallesExtraParts.push(document.getElementById("opc-chile-azteca").value);
+                detallesExtraParts.push(document.getElementById("opc-crema-azteca").value);
+                detallesExtraParts.push(document.getElementById("opc-aguacate-azteca").value);
+            } else if (document.getElementById("opc-longaniza-frijoles")) {
+                detallesExtraParts.push(document.getElementById("opc-longaniza-frijoles").value);
+                detallesExtraParts.push(document.getElementById("opc-cebolla-frijoles").value);
+                detallesExtraParts.push(document.getElementById("opc-jalapeno-frijoles").value);
+            } else if (document.getElementById("opc-verdura-consome")) {
+                detallesExtraParts.push(document.getElementById("opc-verdura-consome").value);
+                detallesExtraParts.push(document.getElementById("opc-chipotle-consome").value);
+                detallesExtraParts.push(document.getElementById("opc-arroz-consome").value);
+                detallesExtraParts.push(document.getElementById("opc-aguacate-consome").value);
+            } else if (document.querySelector('input[name="simple-multi"]')) {
+                detallesExtraParts.push(obtenerSalsasSeleccionadas('simple'));
+            } else if (document.getElementById("opc-tortilla-fundido")) {
+                detallesExtraParts.push(document.getElementById("opc-tortilla-fundido").value);
+                detallesExtraParts.push(obtenerSalsasSeleccionadas('fundido'));
+            } else if (document.getElementById("opc-tipo-limonada")) {
+                detallesExtraParts.push(document.getElementById("opc-tipo-limonada").value);
+                detallesExtraParts.push(document.getElementById("opc-endulzante-limonada").value);
+            } else if (document.getElementById("opc-cafe-crema")) {
+                if (document.getElementById("opc-cafe-crema").value === "Con Crema") {
+                    precioFinal = productoEnEdicion.precioCrema || (productoEnEdicion.precio + 10);
+                    nombreCompleto = `${productoEnEdicion.nombre} (Con Crema)`;
+                }
+            }
+        }
+
+        let detallesExtra = detallesExtraParts.length > 0 ? `[${detallesExtraParts.join(', ')}]` : '';
+        const index = carrito.findIndex(item => item.id === productoEnEdicion.id && item.nombre === nombreCompleto && item.detalles === detallesExtra);
+        if (index !== -1) carrito[index].cantidad++;
+        else carrito.push({ ...productoEnEdicion, nombre: nombreCompleto, precio: precioFinal, variante: varianteActualEnEdicion, detalles: detallesExtra, cantidad: 1 });
+        
+        cerrarModalPersonalizar();
+        actualizarCarrito();
+    }
+
+    function agregar(id) {
+        const prod = productos.find(item => item.id === id);
+        if (prod) {
+            const index = carrito.findIndex(item => item.id === id && item.variante === 'Estándar' && !item.detalles);
+            if (index !== -1) carrito[index].cantidad++;
+            else carrito.push({ ...prod, variante: 'Estándar', cantidad: 1 });
+            actualizarCarrito();
+        }
+    }
+
+    function cambiarCant(indexItem, cambio) {
+        if (carrito[indexItem]) {
+            carrito[indexItem].cantidad += cambio;
+            if (carrito[indexItem].cantidad <= 0) carrito.splice(indexItem, 1);
+        }
+        actualizarCarrito();
+    }
+
+    function actualizarCarrito() {
+        const contenedor = document.getElementById("items-carrito");
+        const barra = document.getElementById("barra-flotante");
+        contenedor.innerHTML = "";
+        let subtotal = 0, totalItems = 0;
+
+        if (carrito.length === 0) {
+            contenedor.innerHTML = `<p class="text-gray-400 text-sm py-4 text-center">Tu carrito está vacío</p>`;
+            document.getElementById("contador-flotante").innerText = "0";
+            document.getElementById("total-flotante").innerText = "$0.00 MXN";
+            document.getElementById("subtotal-carrito").innerText = "$0.00";
+            document.getElementById("total-carrito").innerText = "$0.00";
+            document.getElementById("resumen-cargo-box").style.display = "none";
+            barra.classList.add("translate-y-full");
+            return;
+        }
+
+        barra.classList.remove("translate-y-full");
+        carrito.forEach((item, index) => {
+            subtotal += item.precio * item.cantidad;
+            totalItems += item.cantidad;
+            let descDetalles = item.detalles ? `<p class="text-[10px] text-gray-500">${item.detalles}</p>` : '';
+            contenedor.innerHTML += `
+                <div class="py-2.5 flex justify-between items-center text-sm border-b border-gray-100">
+                    <div>
+                        <p class="font-bold text-gray-900 text-xs">${item.nombre}</p>
+                        ${descDetalles}
+                        <p class="text-xs text-red-700 font-bold">$${item.precio} x ${item.cantidad}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="cambiarCant(${index}, -1)" class="w-6 h-6 bg-gray-100 rounded-full font-bold text-gray-700">-</button>
+                        <span class="font-bold text-sm w-4 text-center">${item.cantidad}</span>
+                        <button onclick="cambiarCant(${index}, 1)" class="w-6 h-6 bg-red-700 text-white rounded-full font-bold">+</button>
+                    </div>
+                </div>`;
+        });
+
+        const tipoServicio = document.getElementById("tipoServicio").value;
+        let cargoDomicilio = (tipoServicio === "Envío a Domicilio") ? (subtotal * 0.10) : 0;
+        if (tipoServicio === "Envío a Domicilio") {
+            document.getElementById("resumen-cargo-box").style.display = "flex";
+            document.getElementById("cargo-domicilio-carrito").innerText = `$${cargoDomicilio.toFixed(2)}`;
+        } else {
+            document.getElementById("resumen-cargo-box").style.display = "none";
+        }
+
+        let totalFinal = subtotal + cargoDomicilio;
+        document.getElementById("contador-flotante").innerText = totalItems;
+        document.getElementById("total-flotante").innerText = `$${totalFinal.toFixed(2)} MXN`;
+        document.getElementById("subtotal-carrito").innerText = `$${subtotal.toFixed(2)}`;
+        document.getElementById("total-carrito").innerText = `$${totalFinal.toFixed(2)}`;
+    }
+
+    function abrirModalCarrito() { document.getElementById("modal-carrito").classList.remove("hidden"); }
+    function cerrarModalCarrito() { document.getElementById("modal-carrito").classList.add("hidden"); }
+
+    function enviarPedidoWhatsApp() {
+        if (!estaAbiertoElNegocio()) {
+            alert("Lo sentimos, en este momento el negocio está cerrado. No se pueden enviar pedidos.");
+            return;
+        }
+        if (carrito.length === 0) return alert("Agrega al menos un producto.");
+        const nombre = document.getElementById("nombre").value.trim();
+        const telefonoCliente = document.getElementById("telefono").value.trim();
+        const servicio = document.getElementById("tipoServicio").value;
+        const colonia = document.getElementById("select-colonia").value;
+        const dir = document.getElementById("direccion").value.trim();
+        const notaDir = document.getElementById("notaDireccion").value.trim();
+        const pago = document.getElementById("pago").value;
+        const notaGen = document.getElementById("notaGlobal").value.trim();
+
+        if (!nombre) return alert("Ingresa tu nombre completo.");
+        // VALIDACIÓN DE TELÉFONO OBLIGATORIO
+        if (!telefonoCliente) return alert("El número de teléfono / WhatsApp es obligatorio para enviar tu pedido.");
+        if (servicio === "Envío a Domicilio" && !dir) return alert("Ingresa tu calle y número.");
+
+        let subtotal = 0;
+        let itemsTextoWhatsApp = "";
+        let itemsHtmlTicket = "";
+        let productosGuardar = [];
+
+        carrito.forEach(i => {
+            let sub = i.precio * i.cantidad;
+            subtotal += sub;
+            let detalleStr = i.detalles ? ` ${i.detalles}` : '';
+            itemsTextoWhatsApp += `• ${i.cantidad}x ${i.nombre}${detalleStr} ($${sub})\n`;
+            itemsHtmlTicket += `${i.cantidad}x ${i.nombre}${detalleStr}<br>`;
+            productosGuardar.push({ ...i });
+        });
+
+        let cargoDomicilio = (servicio === "Envío a Domicilio") ? (subtotal * 0.10) : 0;
+        let total = subtotal + cargoDomicilio;
+        const idUnico = Date.now();
+
+        db.ref('contadorFolio').transaction((actual) => {
+            return (actual || 0) + 1;
+        }, (error, committed, snapshot) => {
+            if (error) {
+                alert("Error al generar el folio: " + error.message);
+                return;
+            }
+            const numeroConsecutivo = snapshot.val() || 1;
+            let folioFormateado = String(numeroConsecutivo).padStart(4, '0');
+
+            const nuevoPedido = {
+                id: idUnico,
+                dispositivoId: dispositivoId,
+                folio: folioFormateado,
+                fecha: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString(),
+                cliente: nombre,
+                telefono: telefonoCliente,
+                servicio: servicio,
+                direccion: servicio === "Envío a Domicilio" ? `${colonia} - ${dir}` : 'Recoger en Sucursal',
+                notaDireccion: notaDir,
+                notaGeneral: notaGen,
+                pago: pago + (pago === 'Efectivo' && document.getElementById("cambio-input").value ? ` (Cambio de ${document.getElementById("cambio-input").value})` : ''),
+                subtotal: `$${subtotal.toFixed(2)}`,
+                cargoDomicilio: cargoDomicilio > 0 ? `$${cargoDomicilio.toFixed(2)}` : null,
+                total: `$${total.toFixed(2)}`,
+                estatus: 'Recibido',
+                productos: productosGuardar,
+                ticketData: {
+                    folio: folioFormateado,
+                    fecha: new Date().toLocaleString(),
+                    cliente: nombre,
+                    servicio: servicio,
+                    dir: servicio === "Envío a Domicilio" ? `${colonia}, ${dir}` : 'Recoger en sucursal',
+                    obsDir: notaDir || '',
+                    pago: pago + (pago === 'Efectivo' && document.getElementById("cambio-input").value ? ` (Cambio de ${document.getElementById("cambio-input").value})` : ''),
+                    items: itemsHtmlTicket,
+                    cargoStr: cargoDomicilio > 0 ? `Cargo 10% domicilio: $${cargoDomicilio.toFixed(2)}` : null,
+                    total: `$${total.toFixed(2)}`,
+                    obsGen: notaGen || ''
+                }
+            };
+
+            db.ref('pedidos/' + idUnico).set(nuevoPedido).then(() => {
+                let msg = `🌮 *PEDIDO #${folioFormateado} - COYOTACO®* 🐺\n\n👤 *Cliente:* ${nombre}\n📞 *Teléfono:* ${telefonoCliente}\n🚲 *Servicio:* ${servicio}\n`;
+                if (servicio === "Envío a Domicilio") {
+                    msg += `📍 *Colonia:* ${colonia}\n📍 *Dirección:* ${dir}\n`;
+                    if (notaDir) msg += `📝 *Ref. Domicilio:* ${notaDir}\n`;
+                }
+                msg += `💵 *Pago:* ${pago}\n`;
+                if (pago === 'Efectivo') {
+                    const cambio = document.getElementById("cambio-input").value.trim();
+                    if (cambio) msg += `💵 *Requiere cambio de:* ${cambio}\n`;
+                }
+                if (notaGen) msg += `📝 *Indicaciones Generales:* ${notaGen}\n`;
+                msg += `\n📋 *Detalle:*\n${itemsTextoWhatsApp}`;
+                if (cargoDomicilio > 0) {
+                    msg += `📦 Subtotal: $${subtotal.toFixed(2)}\n`;
+                    msg += `🚲 Cargo Domicilio (10%): $${cargoDomicilio.toFixed(2)}\n`;
+                }
+                msg += `💰 *TOTAL: $${total.toFixed(2)} MXN*\n\n¡Quedo a la espera de mi confirmación!`;
+
+                window.open(`https://api.whatsapp.com/send?phone=5215533012756&text=${encodeURIComponent(msg)}`, '_blank');
+                cerrarModalCarrito();
+                vaciarCarrito();
+                alert(`¡Pedido #${folioFormateado} enviado y registrado correctamente en Cocina!`);
+            });
+        });
+    }
+
+    function abrirModalMisPedidos() {
+        const contenedor = document.getElementById("lista-mis-pedidos-cliente");
+        contenedor.innerHTML = "";
+        let pedidos = pedidosGlobales.filter(p => p.dispositivoId === dispositivoId);
+
+        if (pedidos.length === 0) {
+            contenedor.innerHTML = `<p class="text-center text-gray-400 py-8 text-xs">No tienes pedidos recientes registrados en este dispositivo.</p>`;
+        } else {
+            pedidos.forEach(p => {
+                let colorEstatus = "bg-amber-100 text-amber-800";
+                if (p.estatus === 'En preparación') colorEstatus = "bg-blue-100 text-blue-800";
+                if (p.estatus === 'En camino') colorEstatus = "bg-purple-100 text-purple-800";
+                if (p.estatus === 'Entregado') colorEstatus = "bg-green-100 text-green-800";
+                if (p.estatus === 'Cancelado') colorEstatus = "bg-red-100 text-red-800 line-through";
+
+                contenedor.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="font-black text-xs text-gray-900">Folio #${p.folio || '0001'} - ${p.cliente}</span>
+                            <span class="text-[10px] ${colorEstatus} px-2.5 py-0.5 rounded-full font-bold">${p.estatus || 'Recibido'}</span>
+                        </div>
+                        <p class="text-xs text-gray-600">🕒 ${p.fecha} | 🚲 ${p.servicio}</p>
+                        <p class="text-xs text-red-700 font-bold">Total: ${p.total}</p>
+                        <div class="pt-2 border-t border-gray-100 flex flex-wrap gap-2">
+                            <button onclick="notificarRecibiPedido('${p.cliente}', '${p.folio}')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-center gap-1 cursor-pointer shadow"><i class="fa-solid fa-check-double"></i> Recibí mi pedido</button>
+                            <button onclick="modificarPedidoCliente(${p.id})" class="flex-1 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-center gap-1 cursor-pointer"><i class="fa-solid fa-pen-to-square"></i> Modificar</button>
+                            <button onclick="abrirModalMotivoCancelacion('${p.cliente}', '${p.id}', '${p.folio}')" class="flex-1 bg-red-100 hover:bg-red-200 text-red-800 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-center gap-1 cursor-pointer"><i class="fa-solid fa-ban"></i> Cancelar</button>
+                        </div>
+                    </div>`;
+            });
+        }
+        document.getElementById("modal-mis-pedidos").classList.remove("hidden");
+    }
+
+    function cerrarModalMisPedidos() { document.getElementById("modal-mis-pedidos").classList.add("hidden"); }
+
+    function notificarRecibiPedido(nombreCliente, folio) {
+        let msg = `Hola *${nombreCliente}*, ¡gracias por avisarnos! Qué gusto que tu pedido #${folio} ha llegado con éxito. ¡Buen provecho de parte de Coyotaco®! 🐺🌮`;
+        window.open(`https://api.whatsapp.com/send?phone=5215533012756&text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function modificarPedidoCliente(idOrden) {
+        const pedido = pedidosGlobales.find(p => p.id === idOrden);
+        if (!pedido) return alert("No se encontró el pedido.");
+        if (pedido.productos && pedido.productos.length > 0) {
+            carrito = [...pedido.productos];
+            document.getElementById("nombre").value = pedido.cliente || '';
+            if (pedido.telefono) document.getElementById("telefono").value = pedido.telefono || '';
+            actualizarCarrito();
+            cerrarModalMisPedidos();
+            irAlMenu();
+            abrirModalCarrito();
+            alert(`Se han cargado los productos de tu pedido #${pedido.folio} al carrito.`);
+        } else {
+            alert("Este pedido no tiene los productos detallados guardados.");
+            cerrarModalMisPedidos();
+            irAlMenu();
+        }
+    }
+
+    function abrirModalMotivoCancelacion(nombre, idOrden, folio) {
+        document.getElementById("cancel-cliente-nombre").value = nombre;
+        document.getElementById("cancel-orden-id").value = idOrden;
+        document.getElementById("cancel-folio").value = folio;
+        document.getElementById("input-motivo-cancelacion").value = "";
+        document.getElementById("modal-mis-pedidos").classList.add("hidden");
+        document.getElementById("modal-motivo-cancelacion").classList.remove("hidden");
+    }
+
+    function cerrarModalMotivoCancelacion() { document.getElementById("modal-motivo-cancelacion").classList.add("hidden"); }
+
+    function enviarCancelacionWhatsApp() {
+        const nombre = document.getElementById("cancel-cliente-nombre").value;
+        const idOrden = document.getElementById("cancel-orden-id").value;
+        const folioStr = document.getElementById("cancel-folio").value || "0001";
+        const motivo = document.getElementById("input-motivo-cancelacion").value.trim() || "No especificado";
+
+        db.ref('pedidos/' + idOrden).update({ estatus: 'Cancelado' });
+        let msg = `Hola Coyotaco®, el cliente *${nombre}* solicita la cancelación de su pedido #${folioStr}.\n\n💬 *Motivo:* ${motivo}`;
+        cerrarModalMotivoCancelacion();
+        window.open(`https://api.whatsapp.com/send?phone=5215533012756&text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function filtrarAdmin(estatusFiltro) {
+        filtroAdminActual = estatusFiltro;
+        ['TODOS', 'Recibido', 'En preparación', 'En camino', 'Cancelado'].forEach(e => {
+            const btn = document.getElementById(`filtro-btn-${e}`);
+            if (btn) {
+                if (e === estatusFiltro) btn.className = "bg-red-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow cursor-pointer";
+                else btn.className = "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs px-4 py-2 rounded-xl border border-zinc-700 cursor-pointer";
+            }
+        });
+        renderizarPedidosCocinaDashboard();
+    }
+
+    function renderizarPedidosCocinaDashboard() {
+        const contenedor = document.getElementById("grid-pedidos-cocina");
+        if (!contenedor) return;
+        contenedor.innerHTML = "";
+        let pedidos = pedidosGlobales;
+        
+        if (filtroAdminActual !== 'TODOS') {
+            pedidos = pedidos.filter(p => (p.estatus || 'Recibido') === filtroAdminActual);
+        }
+
+        if (pedidos.length === 0) {
+            contenedor.innerHTML = `<p class="text-xs text-gray-300 text-center col-span-full py-10">No hay comandas en esta sección.</p>`;
+        } else {
+            pedidos.forEach((p) => {
+                let colorEstatus = "bg-amber-100 text-amber-800 border border-amber-300";
+                if (p.estatus === 'En preparación') colorEstatus = "bg-blue-100 text-blue-800 border border-blue-300";
+                if (p.estatus === 'En camino') colorEstatus = "bg-purple-100 text-purple-800 border border-purple-300";
+                if (p.estatus === 'Entregado') colorEstatus = "bg-emerald-100 text-emerald-800 border border-emerald-300";
+                if (p.estatus === 'Cancelado') colorEstatus = "bg-red-600 text-white animate-pulse";
+
+                let productosHtml = '';
+                if (p.productos && p.productos.length > 0) {
+                    p.productos.forEach(prod => {
+                        productosHtml += `<div class="text-xs text-gray-800 py-1 border-b border-gray-100 flex justify-between"><span>• ${prod.cantidad}x ${prod.nombre} ${prod.detalles || ''}</span></div>`;
+                    });
+                }
+
+                contenedor.innerHTML += `
+                    <div class="bg-white text-gray-900 p-4 sm:p-5 rounded-3xl border border-gray-200 shadow-xl space-y-3 flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="font-black text-sm sm:text-base text-red-700">Folio #${p.folio || '0001'}</span>
+                                <span class="text-[10px] px-2.5 py-1 rounded-full font-black ${colorEstatus}">${p.estatus || 'Recibido'}</span>
+                            </div>
+                            <div class="text-xs space-y-1 text-gray-700 font-medium">
+                                <p><strong>Cliente:</strong> ${p.cliente}</p>
+                                <p><strong>Teléfono:</strong> ${p.telefono || 'No proporcionado'}</p>
+                                <p><strong>Servicio:</strong> ${p.servicio} (${p.direccion})</p>
+                                <p><strong>Pago:</strong> ${p.pago}</p>
+                                <p><strong>Hora:</strong> ${p.fecha}</p>
+                                ${p.notaDireccion ? `<p class="text-xs text-amber-800 font-semibold bg-amber-50 p-1.5 rounded-lg border border-amber-200">Ref: ${p.notaDireccion}</p>` : ''}
+                                ${p.notaGeneral ? `<p class="text-xs text-red-700 font-bold bg-red-50 p-1.5 rounded-lg border border-red-200">Obs: ${p.notaGeneral}</p>` : ''}
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-200 space-y-1 mt-2">
+                                <p class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Productos:</p>
+                                ${productosHtml}
+                            </div>
+                            <div class="flex justify-between items-center pt-1 font-black text-gray-900">
+                                <span class="text-xs uppercase text-gray-500">Total:</span>
+                                <span class="text-sm text-red-700">${p.total}</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+                            <button onclick="cambiarEstatusPedido(${p.id})" class="flex-1 bg-red-700 hover:bg-red-800 text-white font-bold text-xs py-2.5 px-2 rounded-xl cursor-pointer transition shadow text-center">Avanzar 🔄</button>
+                            <button onclick="avisarClienteWhatsApp('${p.cliente}', '${p.estatus || 'Recibido'}', '${p.telefono || ''}')" class="bg-green-600 hover:bg-green-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1 cursor-pointer shadow" title="Avisar por WhatsApp"><i class="fa-brands fa-whatsapp text-sm"></i></button>
+                            <button onclick='imprimirTicket(${JSON.stringify(p.ticketData || {})})' class="bg-gray-100 hover:bg-gray-200 text-amber-700 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1 cursor-pointer shadow border border-gray-300" title="Imprimir Ticket"><i class="fa-solid fa-print text-sm"></i></button>
+                            <button onclick="eliminarPedidoAdmin(${p.id})" class="bg-gray-200 hover:bg-red-100 text-red-700 font-bold text-xs py-2.5 px-3 rounded-xl cursor-pointer border border-gray-300 flex items-center justify-center" title="Eliminar pedido"><i class="fa-solid fa-trash text-sm"></i></button>
+                        </div>
+                    </div>`;
+            });
+        }
+    }
+
+    function cambiarEstatusPedido(id) {
+        const pedido = pedidosGlobales.find(p => p.id === id);
+        if (pedido) {
+            const estatusActual = pedido.estatus || 'Recibido';
+            let siguiente = 'En preparación';
+            if (estatusActual === 'Recibido') siguiente = 'En preparación';
+            else if (estatusActual === 'En preparación') siguiente = 'En camino';
+            else if (estatusActual === 'En camino') siguiente = 'Entregado';
+            else if (estatusActual === 'Entregado') siguiente = 'Recibido';
+            else if (estatusActual === 'Cancelado') siguiente = 'Recibido';
+            db.ref('pedidos/' + id).update({ estatus: siguiente });
+        }
+    }
+
+    function eliminarPedidoAdmin(id) {
+        if (confirm("¿Estás seguro de eliminar este pedido del registro y de la base de datos?")) {
+            db.ref('pedidos/' + id).remove().then(() => {
+                alert("Pedido eliminado correctamente.");
+            });
+        }
+    }
+
+    function avisarClienteWhatsApp(nombreCliente, estatus, telefonoCliente = '') {
+        let textoStatus = "ha sido recibido";
+        if (estatus === 'En preparación') textoStatus = "está en preparación";
+        else if (estatus === 'En camino') textoStatus = "va en camino";
+        else if (estatus === 'Entregado') textoStatus = "ha sido entregado";
+        else if (estatus === 'Cancelado') textoStatus = "ha sido cancelado";
+
+        let msg = `Hola *${nombreCliente}*, te escribimos de Coyotaco® para avisarte que tu pedido ${textoStatus}. ¡Gracias por tu preferencia! 🌮`;
+        let telLimpio = telefonoCliente ? telefonoCliente.replace(/\D/g, '') : '';
+        if (telLimpio.length === 10) telLimpio = '52' + telLimpio;
+
+        if (!telLimpio) return alert("Este pedido no tiene un número de teléfono registrado.");
+        window.open(`https://api.whatsapp.com/send?phone=${telLimpio}&text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function imprimirTicket(data) {
+        document.getElementById("ticket-folio").innerText = data.folio || '0001';
+        document.getElementById("ticket-fecha").innerText = data.fecha;
+        document.getElementById("ticket-cliente").innerText = data.cliente;
+        document.getElementById("ticket-servicio").innerText = data.servicio;
+        document.getElementById("ticket-dir").innerText = data.dir;
+        
+        const obsDirCont = document.getElementById("ticket-obs-dir-container");
+        if (data.obsDir && data.obsDir.trim() !== '') {
+            document.getElementById("ticket-obs-dir").innerText = data.obsDir;
+            obsDirCont.style.display = 'block';
+        } else {
+            obsDirCont.style.display = 'none';
+        }
+
+        document.getElementById("ticket-pago").innerText = data.pago;
+        document.getElementById("ticket-items").innerHTML = data.items;
+        
+        const recargoCont = document.getElementById("ticket-recargo-container");
+        if (data.cargoStr) {
+            document.getElementById("ticket-txt-recargo").innerText = data.cargoStr;
+            recargoCont.style.display = 'block';
+        } else {
+            recargoCont.style.display = 'none';
+        }
+
+        document.getElementById("ticket-total").innerText = data.total;
+        const obsGenCont = document.getElementById("ticket-obs-gen-container");
+        if (data.obsGen && data.obsGen.trim() !== '') {
+            document.getElementById("ticket-obs-gen").innerText = data.obsGen;
+            obsGenCont.style.display = 'block';
+        } else {
+            obsGenCont.style.display = 'none';
+        }
+
+        window.print();
+    }
+</script>
+</body>
+</html>
