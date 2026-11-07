@@ -1,0 +1,436 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coyotaco® - Menú Digital y Pedidos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#24130d">
+    <style>
+        .logo-font { font-family: 'Caveat', cursive; }
+        body { background-color: #24130d; color: #1a1a1a; font-family: 'Poppins', system-ui, -apple-system, sans-serif; scroll-behavior: smooth; margin: 0; padding: 0; }
+        .img-card-container { width: 100%; height: 200px; position: relative; overflow: hidden; background-color: #111; display: flex; align-items: center; justify-content: center; }
+        .img-card-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .panel-bg {
+            background-color: #121212;
+            background-image: linear-gradient(rgba(18, 18, 18, 0.93), rgba(18, 18, 18, 0.96));
+            background-size: cover; background-position: center; background-attachment: fixed;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            #ticket-impresion, #ticket-impresion * { visibility: visible; }
+            #ticket-impresion { position: absolute; left: 0; top: 0; width: 100%; display: block !important; background: white; color: black; padding: 10px; font-family: monospace; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- BANNER DE AVISO DE CIERRE CERCANO -->
+<div id="banner-aviso-cierre" class="hidden bg-amber-500 text-gray-950 font-black text-xs text-center py-2 px-4 shadow-md sticky top-0 z-50">
+    ⚠️ ¡Atención! Estamos a menos de 30 minutos del cierre. A partir de este momento los pedidos son exclusivamente para <strong>recoger en sucursal</strong>.
+</div>
+
+<!-- PÁGINA DE INICIO -->
+<div id="vista-portada" class="min-h-screen flex flex-col bg-[#381f15] text-white relative overflow-hidden">
+    <div class="w-full bg-[#1c0e08] px-4 sm:px-6 pt-5 pb-3 sm:py-3 flex flex-col sm:flex-row justify-between items-center shadow-xl border-b border-red-900/30 gap-3">
+        <div class="flex items-center justify-between w-full sm:w-auto">
+            <div class="flex items-center gap-2">
+                <div class="w-32 h-32 sm:w-48 sm:h-48 rounded-2xl overflow-hidden border-2 border-red-600 bg-[#3c1f14] flex items-center justify-center relative shadow-2xl -my-4 sm:-my-3 shrink-0 z-20">
+                    <img src="logo.jpg.jpg" alt="Logo Oficial Coyotaco" id="logo-principal" class="w-full h-full object-contain bg-black/40" onerror="this.src='https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=300'">
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div id="badge-estado-global" class="px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow">
+                    <span id="dot-global" class="w-2.5 h-2.5 rounded-full"></span> <span id="txt-estado-global">Calculando...</span>
+                </div>
+                <button onclick="abrirModalMisPedidos()" class="sm:hidden bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-3 py-2.5 rounded-xl shadow transition cursor-pointer">Mis Pedidos 📦</button>
+                <button onclick="intentarIrAlMenu()" class="sm:hidden bg-red-700 hover:bg-red-800 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition cursor-pointer">Pedir 🚲</button>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-semibold tracking-wide text-amber-100 py-1">
+            <a href="#vista-portada" class="hover:text-red-500 transition">Inicio</a>
+            <a href="#seccion-quienes-somos" class="hover:text-red-500 transition">¿Quiénes somos?</a>
+            <a href="#seccion-salsas" class="hover:text-red-500 transition">Salsas</a>
+            <button onclick="intentarIrAlMenu()" class="hover:text-red-500 transition cursor-pointer font-bold text-amber-300">Menú</button>
+            <a href="#seccion-facturacion" class="hover:text-red-500 transition">Facturación</a>
+            <a href="#seccion-contacto-directo" class="hover:text-red-500 transition">Eventos</a>
+        </div>
+        <div class="hidden sm:flex items-center gap-3">
+            <button onclick="abrirModalMisPedidos()" class="bg-amber-600 hover:bg-amber-700 text-white font-black text-xs sm:text-sm px-4 py-3 rounded-2xl shadow-md transition cursor-pointer border border-amber-500/40">📦 Mis Pedidos</button>
+            <button onclick="intentarIrAlMenu()" class="bg-red-700 hover:bg-red-800 text-white font-black text-xs sm:text-sm px-5 py-3 rounded-2xl shadow-md transition cursor-pointer border border-red-500/40">Pedir a domicilio</button>
+        </div>
+    </div>
+
+    <div class="relative w-full h-[380px] sm:h-[500px] flex flex-col justify-end items-center text-center pb-12 px-4 overflow-hidden shadow-inner">
+        <div class="absolute inset-0 bg-cover bg-center" id="banner-portada-bg" style="background-image: url('banner.jpg.jpg');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#1c0e08] via-black/60 to-black/30"></div>
+        <div class="relative z-10 space-y-2 max-w-2xl mx-auto px-2">
+            <h1 class="logo-font text-5xl sm:text-8xl font-bold text-red-600 tracking-wide drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]" id="titulo-ppal">Coyotaco</h1>
+            <p class="logo-font text-xl sm:text-3xl text-amber-300 tracking-wider font-bold drop-shadow-md" id="lema-ppal">Con el típico sabor de Coyoacán desde 2003.</p>
+        </div>
+    </div>
+
+    <div class="bg-[#dcd6ce] text-gray-900 px-4 sm:px-16 py-8 sm:py-16 space-y-12 sm:space-y-16">
+        <div id="seccion-quienes-somos" class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 items-center border border-red-900/15">
+            <div class="w-full h-72 sm:h-96 md:h-[450px] relative overflow-hidden bg-[#24130d] flex items-center justify-center p-4">
+                <img src="quienes somos.jpg" alt="Tradición Coyotaco" id="img-tradicion-banner" class="w-full h-full object-contain drop-shadow-md" onerror="this.src='https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600'">
+            </div>
+            <div class="p-6 sm:p-12 space-y-4 sm:space-y-5 text-center md:text-left">
+                <span class="bg-red-100 text-red-700 font-bold text-xs px-3 py-1 rounded-full uppercase">Nuestra Historia</span>
+                <h2 class="text-2xl sm:text-3xl font-black tracking-wider uppercase text-gray-900" id="h-tradicion">¿Quiénes Somos?</h2>
+                <div class="space-y-3 text-xs sm:text-sm text-gray-700 leading-relaxed font-normal" id="p-tradicion">
+                    <p>Desde 2003, <strong>Coyotaco</strong> se ha consolidado como un referente indiscutible del buen comer en el corazón de Coyoacán. Nacimos con una misión clara: ofrecer tacos y antojitos mexicanos de la más alta calidad, conservando los sabores tradicionales que nos distinguen.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECCIÓN 2: MENÚ DIGITAL -->
+<div id="vista-menu" style="display: none;" class="min-h-screen text-white relative bg-[#1c0e08]">
+    <header class="bg-[#1c0e08]/95 backdrop-blur-md shadow-lg sticky top-0 z-40 border-b border-red-900/30 relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+            <button onclick="regresarPortada()" class="flex items-center gap-2 text-white font-black text-xs bg-red-700 hover:bg-red-800 px-3 sm:px-4 py-2.5 rounded-2xl transition cursor-pointer shadow-md"><i class="fa-solid fa-arrow-left"></i> Volver al Inicio</button>
+            <div class="flex items-center gap-3">
+                <button onclick="abrirModalMisPedidos()" class="bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-3.5 py-2 rounded-xl transition cursor-pointer shadow">📦 Mis Pedidos</button>
+                <div class="flex items-center gap-1.5">
+                    <h2 class="logo-font text-3xl sm:text-4xl text-red-600 leading-none">Coyotaco</h2>
+                    <span class="text-[9px] font-bold text-white bg-red-600 px-1.5 py-0.5 rounded-md align-super">®</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6 relative z-10">
+        <div id="lista-productos" class="space-y-10"></div>
+    </main>
+</div>
+
+<!-- MODAL DE PERSONALIZACIÓN -->
+<div id="modal-personalizar" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white text-gray-900 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 id="modal-titulo-personalizar" class="text-sm font-black text-gray-900">Personalizar Producto</h3>
+            <button onclick="cerrarModalPersonalizar()" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center justify-center font-bold text-sm cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 space-y-4 max-h-[70vh] overflow-y-auto" id="contenido-opciones-modal"></div>
+        <div class="p-4 bg-gray-50 border-t border-gray-100 flex gap-2">
+            <button onclick="confirmarPersonalizacion()" class="w-full bg-red-700 hover:bg-red-800 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider shadow cursor-pointer transition">Agregar al Pedido</button>
+        </div>
+    </div>
+</div>
+
+<!-- Barra Inferior Flotante -->
+<div id="barra-flotante" class="fixed bottom-0 left-0 right-0 bg-[#1c0e08]/95 backdrop-blur-md border-t border-red-900/40 p-4 shadow-2xl z-50 transform translate-y-full transition-transform duration-300">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center font-black text-sm" id="contador-flotante">0</div>
+            <div>
+                <p class="text-[11px] text-gray-300 font-bold uppercase tracking-wider">Total de tu orden</p>
+                <p class="text-base font-black text-amber-300" id="total-flotante">$0.00 MXN</p>
+            </div>
+        </div>
+        <button onclick="abrirModalCarrito()" class="bg-red-700 hover:bg-red-800 text-white font-extrabold px-5 sm:px-6 py-3 rounded-2xl shadow-md text-sm flex items-center gap-2 cursor-pointer transition border border-red-500/40"><span>Ver Pedido</span><i class="fa-solid fa-chevron-right text-xs"></i></button>
+    </div>
+</div>
+
+<!-- Modal del Carrito -->
+<div id="modal-carrito" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white text-gray-900 w-full max-w-lg rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+            <h2 class="text-base font-black text-gray-900 flex items-center gap-2"><i class="fa-solid fa-receipt text-red-700"></i> Tu Orden en Coyotaco®</h2>
+            <button onclick="cerrarModalCarrito()" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center justify-center font-bold text-sm cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 overflow-y-auto space-y-4 flex-1">
+            <div id="items-carrito" class="divide-y divide-gray-100 max-h-44 overflow-y-auto pr-1">
+                <p class="text-gray-400 text-sm py-4 text-center">Tu carrito está vacío</p>
+            </div>
+            <div class="border-t border-gray-100 pt-3 space-y-1 text-sm font-black text-gray-900">
+                <div class="flex justify-between text-lg pt-1"><span>Total a Pagar:</span><span id="total-carrito" class="text-red-700">$0.00</span></div>
+            </div>
+            <div class="space-y-3 pt-2 border-t border-gray-100">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Nombre Completo</label>
+                    <input type="text" id="nombre" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none" placeholder="Ej. Juan Pérez">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Teléfono / WhatsApp <span class="text-red-600 font-black">* Obligatorio</span></label>
+                    <input type="tel" id="telefono" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-600" placeholder="Ej. 5512345678">
+                </div>
+            </div>
+        </div>
+        <div class="p-4 border-t border-gray-100 bg-gray-50 flex gap-2 shrink-0">
+            <button onclick="enviarPedidoWhatsApp()" class="flex-2 bg-green-600 hover:bg-green-700 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-md flex items-center justify-center gap-2 text-xs cursor-pointer"><i class="fa-brands fa-whatsapp text-lg"></i> Enviar Pedido a WhatsApp</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAScFVX82Iq6kgYLokZ4Z2srb4F8QS-Xf4",
+        authDomain: "coyotaco-app.firebaseapp.com",
+        projectId: "coyotaco-app",
+        storageBucket: "coyotaco-app.firebasestorage.app",
+        messagingSenderId: "333760931457",
+        appId: "1:333760931457:web:5804b84fd2420455100f80",
+        measurementId: "G-5G89XXPTC3"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // MENÚ COMPLETO AL 100% CON COSTEÑO COMO PRIMERA TARJETA EN COMBINACIONES
+    let productos = [
+        { id: 1, nombre: "Costeño", desc: "Fajitas de chuleta, con tocino, cebolla y jalapeño", categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'costeno', img: "Alambres Y Combinaciones.jpg" },
+        { id: 1400, nombre: "Coyotaco", desc: "Nuestra especialidad de la casa. Receta única con el mejor sazón tradicional.", precio: 150, precioQueso: 180, categoria: "Especialidad de la Casa y Combinaciones", img: "Coyotaco.jpg" },
+        { id: 1401, nombre: "Bistec con nopal", desc: "Combinación tradicional de bistec con nopal.", precio: 130, categoria: "Especialidad de la Casa y Combinaciones", img: "combinacion bstec con nopal.jpg" },
+        { id: 101, nombre: "Sopa de fideo", desc: "Tradicional, con queso y crema.", precio: 60, categoria: "Sopas", img: "Sopa De fideo.jpg" },
+        { id: 102, nombre: "Sopa azteca", desc: "Tiritas de tortilla frita, aguacate, queso panela, crema y chile pasilla.", precio: 75, categoria: "Sopas", img: "Sopa azteca.jpg" },
+        { id: 103, nombre: "Frijoles charros", desc: "Frijoles en caldillo con longaniza y rodajas de jalapeño", precio: 80, categoria: "Sopas", img: "Frijoles charros.jpg" },
+        { id: 201, nombre: "Taco Individual Pastor (Maíz)", desc: "Sencillo o c/queso", precio: 25, categoria: "Tacos Individuales", img: "pastor maiz.jpg" },
+        { id: 202, nombre: "Taco Individual Suadero (Maíz)", desc: "Sencillo o c/queso", precio: 25, categoria: "Tacos Individuales", img: "Tacos individuales de suadero.jpg" },
+        { id: 301, nombre: "Orden de Tacos al Pastor", desc: "Sencillo o c/queso", precio: 125, categoria: "Orden de Tacos", img: "Orden de tacos de pastor.jpg" },
+        { id: 302, nombre: "Orden de Tacos de Suadero", desc: "Sencillo o c/queso", precio: 125, categoria: "Orden de Tacos", img: "Orden de tacos de suadero.jpg" },
+        { id: 401, nombre: "Champiñones", desc: "Champiñones asados tradicionales.", precio: 75, categoria: "Acompañamientos", img: "Champiñones asados.jpg" },
+        { id: 405, nombre: "Nopal", desc: "Nopales asados tradicionales.", precio: 50, categoria: "Acompañamientos", img: "orden de nopal asado.jpg" },
+        { id: 501, nombre: "Torta de Jamón", desc: "Sencillo o c/queso", precio: 55, categoria: "Tortas", img: "Torta de jamon.jpg" },
+        { id: 509, nombre: "Torta de Pastor", desc: "Sencillo o c/queso", precio: 65, categoria: "Tortas", img: "Torta De Pastor.jpg" },
+        { id: 601, nombre: "Sincronizada", desc: "Sincronizada clásica", precio: 60, categoria: "Gringas", img: "Sincronizada.jpg" },
+        { id: 602, nombre: "Gringa de Pastor", desc: "Gringa con pastor y queso", precio: 85, categoria: "Gringas", img: "Gringa de pastor.jpg" },
+        { id: 701, nombre: "Burrito de Pastor", desc: "Tortilla gigante de harina", precio: 115, categoria: "Burritos", img: "Burrito de Pastor.jpg" },
+        { id: 702, nombre: "Burrito de Suadero", desc: "Tortilla gigante de harina", precio: 115, categoria: "Burritos", img: "Burrito de suadero.jpg" },
+        { id: 801, nombre: "Alambre Vegetariano", desc: "Mezcla con cebolla, tocino", precio: 110, categoria: "Alambres", img: "Alambre vegetariano.jpg" },
+        { id: 802, nombre: "Alambre de Suadero", desc: "Mezcla con cebolla, tocino", precio: 140, categoria: "Alambres", img: "Alambre de suadero.jpg" },
+        { id: 901, nombre: "Sope Sencillo", desc: "Sope tradicional", precio: 35, categoria: "Sopes", img: "Sope  Con queso.jpg" },
+        { id: 903, nombre: "Sope de Pastor", desc: "Sope con pastor", precio: 60, categoria: "Sopes", img: "sope de pastor.jpg" },
+        { id: 1001, nombre: "Volcán de Pastor", desc: "Volcán con pastor", precio: 90, categoria: "Volcanes", img: "Volcan De Pastor.jpg" },
+        { id: 1101, nombre: "Quesadilla Sencilla", desc: "Tortilla maíz o harina con queso", precio: 40, categoria: "Quesadillas", img: "Quesadilla sencilla.jpg" },
+        { id: 1201, nombre: "Queso Fundido Tradicional", desc: "Queso fundido caliente", precio: 130, categoria: "Quesos Fundidos", img: "Quesp fundido tradicional.jpg" },
+        { id: 1301, nombre: "Costra de Carne", desc: "Costra de queso crujiente", precio: 70, categoria: "Costras", img: "costra de carne.jpg" },
+        { id: 1501, nombre: "Agua embotellada", desc: "Agua purificada 600 ml", precio: 30, categoria: "Bebidas", img: "agua embotellada (2).jpg" },
+        { id: 1502, nombre: "Agua de Jamaica", desc: "Vaso de 500 ml", precio: 40, categoria: "Bebidas", img: "agua de jamaica.jpg" },
+        { id: 1503, nombre: "Agua de Horchata", desc: "Vaso de 500 ml", precio: 40, categoria: "Bebidas", img: "agua de horchata.jpg" },
+        { id: 1601, nombre: "Corona", desc: "Sola $50 | Michelada $70", precio: 50, categoria: "Cervezas", img: "Corona.jpg" },
+        { id: 1701, nombre: "Arroz con leche", desc: "Postre casero", precio: 40, categoria: "Postres", personalizable: 'arroz_con_leche', img: "Arroz con leche.jpg" },
+        { id: 1702, nombre: "Pay de limón", desc: "Pay de limón refrescante", precio: 40, categoria: "Postres", img: "Pay de limon.jpg" }
+    ];
+
+    let carrito = [];
+    let productoEnEdicion = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        mostrarMenu();
+    });
+
+    function intentarIrAlMenu() {
+        document.getElementById("vista-portada").style.display = "none";
+        document.getElementById("vista-menu").style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function regresarPortada() {
+        document.getElementById("vista-menu").style.display = "none";
+        document.getElementById("vista-portada").style.display = "flex";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function mostrarMenu() {
+        const contenedor = document.getElementById("lista-productos");
+        contenedor.innerHTML = "";
+        let htmlCards = '';
+        productos.forEach(prod => {
+            let onclickAccion = `agregar(${prod.id})`;
+            if (prod.personalizable === 'costeno') onclickAccion = `abrirModalCosteno(${prod.id})`;
+            else if (prod.personalizable === 'arroz_con_leche') onclickAccion = `abrirModalArrozConLeche(${prod.id})`;
+
+            let precioTxt = prod.personalizable === 'costeno' ? "$140 - $170" : `$${prod.precio.toFixed(2)}`;
+
+            htmlCards += `
+                <div class="bg-[#1c0e08]/90 rounded-3xl shadow-lg border border-red-600/30 overflow-hidden flex flex-col justify-between hover:border-red-500 transition">
+                    <div>
+                        <div class="img-card-container">
+                            <img src="${prod.img}" alt="${prod.nombre}">
+                        </div>
+                        <div class="p-4 space-y-1">
+                            <h3 class="font-bold text-white text-xs sm:text-sm">${prod.nombre}</h3>
+                            <p class="text-[11px] text-gray-300 leading-relaxed">${prod.desc}</p>
+                        </div>
+                    </div>
+                    <div class="p-4 pt-0 flex flex-col gap-2 border-t border-red-900/40 mt-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-amber-300 font-black text-sm sm:text-base">${precioTxt}</span>
+                            <button onclick="${onclickAccion}" class="bg-red-700 hover:bg-red-800 text-white text-xs font-bold py-2 px-3.5 rounded-xl shadow cursor-pointer transition">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        contenedor.innerHTML = `<div class="space-y-4"><h3 class="text-xl sm:text-2xl font-black text-red-500 border-b border-red-900/50 pb-2 uppercase tracking-wider">Especialidad de la Casa y Combinaciones</h3><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">${htmlCards}</div></div>`;
+    }
+
+    function agregar(id) {
+        const prod = productos.find(item => item.id === id);
+        if (prod) {
+            carrito.push({ ...prod, variante: 'Estándar', cantidad: 1 });
+            actualizarCarrito();
+        }
+    }
+
+    function abrirModalCosteno(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        document.getElementById("modal-titulo-personalizar").innerText = "Personalizar: Costeño";
+        document.getElementById("contenido-opciones-modal").innerHTML = `
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Opción de Queso:</label>
+                <select id="opc-costeno-queso" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                    <option value="Sin queso|140">Sin queso — $140</option>
+                    <option value="Con queso|170">Con queso — $170</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Tortilla:</label>
+                <select id="opc-costeno-tortilla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                    <option value="Tortilla de Maíz">Tortilla de Maíz</option>
+                    <option value="Tortilla de Harina">Tortilla de Harina</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Variedad de Salsas:</label>
+                <select id="opc-costeno-salsa" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                    <option value="Salsa Verde">Salsa Verde Tradicional</option>
+                    <option value="Salsa Roja">Salsa Roja de Pasilla</option>
+                    <option value="Salsa Coyotaco">Salsa Coyotaco</option>
+                    <option value="Salsa Mexicana">Salsa Mexicana</option>
+                    <option value="Salsa de Piña">Salsa de Piña</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Cebolla:</label>
+                    <select id="opc-costeno-cebolla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Con cebolla">Con cebolla</option>
+                        <option value="Sin cebolla">Sin cebolla</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Jalapeño:</label>
+                    <select id="opc-costeno-jalapeno" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                        <option value="Con jalapeño">Con jalapeño</option>
+                        <option value="Sin jalapeño">Sin jalapeño</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-3">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Tocino:</label>
+                <select id="opc-costeno-tocino" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                    <option value="Con tocino">Con tocino</option>
+                    <option value="Sin tocino">Sin tocino</option>
+                </select>
+            </div>`;
+        document.getElementById("modal-personalizar").classList.remove("hidden");
+    }
+
+    function abrirModalArrozConLeche(id) {
+        productoEnEdicion = productos.find(item => item.id === id);
+        document.getElementById("modal-titulo-personalizar").innerText = "Personalizar: Arroz con leche";
+        document.getElementById("contenido-opciones-modal").innerHTML = `
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Opción de Canela:</label>
+                <select id="opc-arroz-canela" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none">
+                    <option value="Con canela">Con canela</option>
+                    <option value="Sin canela">Sin canela</option>
+                </select>
+            </div>`;
+        document.getElementById("modal-personalizar").classList.remove("hidden");
+    }
+
+    function cerrarModalPersonalizar() {
+        document.getElementById("modal-personalizar").classList.add("hidden");
+        productoEnEdicion = null;
+    }
+
+    function confirmarPersonalizacion() {
+        if (!productoEnEdicion) return;
+        let precioFinal = productoEnEdicion.precio || 140;
+        let nombreCompleto = productoEnEdicion.nombre;
+        let detalle = "";
+
+        if (document.getElementById("opc-costeno-queso")) {
+            const parts = document.getElementById("opc-costeno-queso").value.split('|');
+            const tortilla = document.getElementById("opc-costeno-tortilla").value;
+            const salsa = document.getElementById("opc-costeno-salsa").value;
+            const cebolla = document.getElementById("opc-costeno-cebolla").value;
+            const jalapeno = document.getElementById("opc-costeno-jalapeno").value;
+            const tocino = document.getElementById("opc-costeno-tocino").value;
+            
+            nombreCompleto = `Costeño (${parts[0]} - ${tortilla})`;
+            precioFinal = parseFloat(parts[1]);
+            detalle = `[${salsa}, ${cebolla}, ${jalapeno}, ${tocino}]`;
+        } else if (document.getElementById("opc-arroz-canela")) {
+            detalle = `[${document.getElementById("opc-arroz-canela").value}]`;
+        }
+
+        carrito.push({ nombre: nombreCompleto, precio: precioFinal, detalles: detalle, cantidad: 1 });
+        cerrarModalPersonalizar();
+        actualizarCarrito();
+    }
+
+    function actualizarCarrito() {
+        const contenedor = document.getElementById("items-carrito");
+        const barra = document.getElementById("barra-flotante");
+        contenedor.innerHTML = "";
+        let subtotal = 0, totalItems = 0;
+
+        if (carrito.length === 0) {
+            contenedor.innerHTML = `<p class="text-gray-400 text-sm py-4 text-center">Tu carrito está vacío</p>`;
+            barra.classList.add("translate-y-full");
+            return;
+        }
+
+        barra.classList.remove("translate-y-full");
+        carrito.forEach((item) => {
+            subtotal += item.precio * item.cantidad;
+            totalItems += item.cantidad;
+            contenedor.innerHTML += `
+                <div class="py-2.5 flex justify-between items-center text-sm border-b border-gray-100">
+                    <div>
+                        <p class="font-bold text-gray-900 text-xs">${item.nombre} ${item.detalles || ''}</p>
+                        <p class="text-xs text-red-700 font-bold">$${item.precio} x ${item.cantidad}</p>
+                    </div>
+                </div>`;
+        });
+
+        document.getElementById("contador-flotante").innerText = totalItems;
+        document.getElementById("total-flotante").innerText = `$${subtotal.toFixed(2)} MXN`;
+        document.getElementById("total-carrito").innerText = `$${subtotal.toFixed(2)}`;
+    }
+
+    function abrirModalCarrito() { document.getElementById("modal-carrito").classList.remove("hidden"); }
+    function cerrarModalCarrito() { document.getElementById("modal-carrito").classList.add("hidden"); }
+
+    function enviarPedidoWhatsApp() {
+        const nombre = document.getElementById("nombre").value.trim();
+        const telefono = document.getElementById("telefono").value.trim();
+        if (!nombre) return alert("Ingresa tu nombre completo.");
+        if (!telefono) return alert("El número de teléfono / WhatsApp es obligatorio para enviar tu pedido.");
+
+        let subtotal = 0, txt = "";
+        carrito.forEach(i => {
+            subtotal += i.precio * i.cantidad;
+            txt += `• ${i.cantidad}x ${i.nombre} ${i.detalles || ''} ($${i.precio * i.cantidad})\n`;
+        });
+
+        let msg = `🌮 *PEDIDO - COYOTACO®*\n👤 *Cliente:* ${nombre}\n📞 *Teléfono:* ${telefono}\n\n📋 *Detalle:*\n${txt}\n💰 *TOTAL: $${subtotal.toFixed(2)} MXN*`;
+        window.open(`https://api.whatsapp.com/send?phone=5215533012756&text=${encodeURIComponent(msg)}`, '_blank');
+        cerrarModalCarrito();
+        carrito = [];
+        actualizarCarrito();
+    }
+</script>
+</body>
+</html>
