@@ -741,7 +741,7 @@
         { id: 1302, nombre: "Costra de Arrachera", desc: "Costra de queso con arrachera", precio: 80, categoria: "Costras", personalizable: 'salsa_multiple', img: "costra de arrachera.jpg" },
         { id: 1303, nombre: "Chicharrón de queso", desc: "Chicharrón de queso crujiente", precio: 130, categoria: "Costras", personalizable: 'salsa_multiple', img: "Chicharron De queso.jpg" },
         { id: 1400, nombre: "Coyotaco", desc: "Nuestra especialidad de la casa. Receta única con el mejor sazón tradicional.", precio: 150, precioQueso: 180, categoria: "Especialidad de la Casa y Combinaciones", destaque: true, personalizable: 'especialidad_casa', img: "Coyotaco.jpg" },
-        { id: 1401, nombre: "Bistec", desc: "Elige tu combinación favorita de bistec.", precio: 130, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'combinacion_desplegable', img: "combinacion bstec con nopal.jpg" },
+        { id: 14005, nombre: "Costeño", desc: "Fajitas de chuleta con tocino, cebolla y chile jalapeño. Sencillo y con queso.", precio: 140, precioQueso: 170, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'costeno', img: "Costeno.jpg" },{ id: 1401, nombre: "Bistec", desc: "Elige tu combinación favorita de bistec.", precio: 130, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'combinacion_desplegable', img: "combinacion bstec con nopal.jpg" },
         { id: 1408, nombre: "Costilla", desc: "Elige tu combinación favorita de costilla.", precio: 130, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'combinacion_desplegable', img: "orden de tacos de costilla.jpg" },
         { id: 1414, nombre: "Chuleta", desc: "Elige tu combinación favorita de chuleta.", precio: 130, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'combinacion_desplegable', img: "Orden de tacos de chuleta.jpg" },
         { id: 1420, nombre: "Pollo", desc: "Elige tu combinación favorita de pollo.", precio: 130, categoria: "Especialidad de la Casa y Combinaciones", personalizable: 'combinacion_desplegable', img: "combinacion pollo con nopal.jpg" },
@@ -978,26 +978,40 @@
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            for (let i = 0; i < 3; i++) {
-                let startTime = audioCtx.currentTime + (i * 0.4);
+
+            // Campanada brillante tipo mostrador de restaurante (2 repeticiones alegres)
+            const notas = [
+                { freq: 1046.50, tiempo: 0.00, dur: 0.35 }, // Do6
+                { freq: 1318.51, tiempo: 0.18, dur: 0.35 }, // Mi6
+                { freq: 1567.98, tiempo: 0.36, dur: 0.65 }, // Sol6 (campana larga)
+                { freq: 1046.50, tiempo: 1.15, dur: 0.35 }, // Repetición Do6
+                { freq: 1318.51, tiempo: 1.33, dur: 0.35 }, // Repetición Mi6
+                { freq: 1567.98, tiempo: 1.51, dur: 0.75 }  // Repetición Sol6
+            ];
+
+            notas.forEach(nota => {
+                let startTime = audioCtx.currentTime + nota.tiempo;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(880, startTime);
-                osc.frequency.setValueAtTime(1200, startTime + 0.15);
-                gain.gain.setValueAtTime(1.0, startTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
+
+                // 'triangle' suena claro, brillante y con buen volumen sin ser agresivo
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(nota.freq, startTime);
+
+                gain.gain.setValueAtTime(0.01, startTime);
+                gain.gain.linearRampToValueAtTime(1.0, startTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + nota.dur);
+
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
+
                 osc.start(startTime);
-                osc.stop(startTime + 0.35);
-            }
+                osc.stop(startTime + nota.dur);
+            });
         } catch (e) {
             console.log("Audio bloqueado");
         }
-    }
-
-    function seleccionarEstrellas(n) {
+        }    function seleccionarEstrellas(n) {
         document.getElementById("valor-estrellas").value = n;
         const estrellas = document.querySelectorAll("#estrellas-calificacion i");
         estrellas.forEach((estrella, index) => {
@@ -1169,6 +1183,7 @@
                             else if (prod.personalizable === 'frijoles_charros') onclickAccion = `abrirModalFrijolesCharros(${prod.id})`;
                             else if (prod.personalizable === 'consome_pollo') onclickAccion = `abrirModalConsomePollo(${prod.id})`;
                             else if (prod.personalizable === 'alambre') onclickAccion = `abrirModalPersonalizarAlambre(${prod.id})`;
+                            else if (prod.personalizable === 'costeno') onclickAccion = `abrirModalPersonalizarCosteno(${prod.id})`;
                             else if (prod.personalizable === 'salsa_multiple') onclickAccion = `abrirModalPersonalizarSalsaMultiple(${prod.id})`;
                             else if (prod.personalizable === 'queso_fundido') onclickAccion = `abrirModalPersonalizarQuesoFundido(${prod.id})`;
                             else if (prod.personalizable === 'limonada_naranjada') onclickAccion = `abrirModalPersonalizarLimonadaNaranjada(${prod.id})`;
@@ -1659,7 +1674,53 @@
             document.getElementById("modal-personalizar").classList.remove("hidden");
         }
     }
-
+function abrirModalPersonalizarCosteno(id) {
+    productoEnEdicion = productos.find(item => item.id === id);
+    varianteActualEnEdicion = 'Estándar';
+    if (productoEnEdicion) {
+        let precioBase = productoEnEdicion.precio;
+        let precioQueso = productoEnEdicion.precioQueso || 170;
+        document.getElementById("modal-titulo-personalizar").innerText = `Personalizar: ${productoEnEdicion.nombre}`;
+        document.getElementById("contenido-opciones-modal").innerHTML = `
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Tortilla:</label>
+                <select id="opc-costeno-tortilla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                    <option value="Tortilla de Maíz">Tortilla de Maíz</option>
+                    <option value="Tortilla de Harina">Tortilla de Harina</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Opción de Queso:</label>
+                <select id="opc-costeno-queso" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                    <option value="Sencillo|${precioBase}">Sencillo (Sin queso) — $${precioBase}</option>
+                    <option value="Con Queso|${precioQueso}">Con Queso — $${precioQueso}</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Tocino:</label>
+                <select id="opc-costeno-tocino" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                    <option value="Con tocino">Con tocino</option>
+                    <option value="Sin tocino">Sin tocino</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Cebolla:</label>
+                <select id="opc-costeno-cebolla" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                    <option value="Con cebolla">Con cebolla</option>
+                    <option value="Sin cebolla">Sin cebolla</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Chile Jalapeño:</label>
+                <select id="opc-costeno-jalapeno" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none mb-3">
+                    <option value="Con jalapeño">Con jalapeño</option>
+                    <option value="Sin jalapeño">Sin jalapeño</option>
+                </select>
+            </div>
+            ${generarHtmlSalsasMultiples('costeno')}`;
+        document.getElementById("modal-personalizar").classList.remove("hidden");
+    }
+}
     function abrirModalPersonalizarAlambre(id) {
         productoEnEdicion = productos.find(item => item.id === id);
         varianteActualEnEdicion = 'Estándar';
@@ -1878,7 +1939,16 @@
             precioFinal = parseFloat(partsTo[1]);
             detallesExtraParts.push(document.getElementById("opc-picante-torta").value);
             detallesExtraParts.push(document.getElementById("opc-lechuga-torta").value);
-        } else if (document.getElementById("opc-alambre-queso")) {
+ } else if (document.getElementById("opc-costeno-queso")) {
+    const partsCos = document.getElementById("opc-costeno-queso").value.split('|');
+    if (partsCos[0] === "Con Queso") nombreCompleto = `${productoEnEdicion.nombre} (Con Queso)`;
+    precioFinal = parseFloat(partsCos[1]);
+    detallesExtraParts.push(document.getElementById("opc-costeno-tortilla").value);
+    detallesExtraParts.push(document.getElementById("opc-costeno-tocino").value);
+    detallesExtraParts.push(document.getElementById("opc-costeno-cebolla").value);
+    detallesExtraParts.push(document.getElementById("opc-costeno-jalapeno").value);
+    detallesExtraParts.push(obtenerSalsasSeleccionadas('costeno'));       
+ } else if (document.getElementById("opc-alambre-queso")) {
             const partsAl = document.getElementById("opc-alambre-queso").value.split('|');
             if (partsAl[0] === "Con Queso") nombreCompleto = `${productoEnEdicion.nombre} (Con Queso)`;
             precioFinal = parseFloat(partsAl[1]);
